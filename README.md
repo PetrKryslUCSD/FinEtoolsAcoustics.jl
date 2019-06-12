@@ -12,7 +12,7 @@
 ## How to run
 
 The [FinEtools](https://github.com/PetrKryslUCSD/FinEtools.jl) package is
-needed. The entire setup of `FinEtoolsHeatDiff` can be performed with
+needed. The entire setup of `FinEtoolsAcoustics` can be performed with
 ```julia
 ] activate .; instantiate
 ```
