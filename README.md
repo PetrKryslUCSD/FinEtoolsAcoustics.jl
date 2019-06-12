@@ -1,11 +1,14 @@
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 
-# FinEtoolsAcoustics: Linear acoustics application for FinEtools
+# FinEtoolsAcoustics: Linear acoustics application
+
+`FinEtools` is a package for basic operations on finite element meshes.
+`FinEtoolsAcoustics` is a package using `FinEtools` to solve linear acoustics problems.
+Included is modal analysis, steady-state, and transient acoustics.
 
 ## News
 
-- 06/11/2019: Applications are now separated  out from the FinEtools package.
-
+- 06/11/2019: Applications are now separated  out from the `FinEtools` package.
 
 [Past news](oldnews.md)
 
@@ -17,4 +20,11 @@ needed. The entire setup of `FinEtoolsAcoustics` can be performed with
 ] activate .; instantiate
 ```
 
-The examples may be executed as described in the  [Github pages](https://petrkryslucsd.github.io/FinEtools.jl/latest).
+The package `FinEtoolsAcoustics` can be tested as
+```julia
+] activate .; instantiate; test
+```
+
+There are a number of examples covering modal analysis, steady-state, and
+transient acoustics. The examples may be executed as described in the  [Github
+pages](https://petrkryslucsd.github.io/FinEtools.jl/latest).
