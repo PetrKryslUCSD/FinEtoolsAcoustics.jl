@@ -26,5 +26,4 @@ The package `FinEtoolsAcoustics` can be tested as
 ```
 
 There are a number of examples covering modal analysis, steady-state, and
-transient acoustics. The examples may be executed as described in the  [Github
-pages](https://petrkryslucsd.github.io/FinEtools.jl/latest).
+transient acoustics. The examples may be executed as described in the  [conceptual guide to `FinEtools`](https://petrkryslucsd.github.io/FinEtools.jl/latest).
