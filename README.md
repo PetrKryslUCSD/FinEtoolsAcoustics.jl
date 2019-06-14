@@ -9,8 +9,8 @@
 # FinEtoolsAcoustics: Linear acoustics application
 
 [`FinEtools`](https://github.com/PetrKryslUCSD/FinEtools.jl.git) is a package
-for basic operations on finite element meshes. `FinEtoolsHeatDiff` is a package
-using `FinEtools` to solve linear heat conduction (diffusion) problems.
+for basic operations on finite element meshes. `FinEtoolsAcoustics` is a package
+using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
