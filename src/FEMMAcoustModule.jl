@@ -52,18 +52,15 @@ function  buffers(self::FEMMAcoust, geom::NodalField{FFlt}, P::NodalField{F}) wh
 end
 
 """
-    acousticmass(self::FEMMAcoust,
-      assembler::A, geom::NodalField,
-      P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+    acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
 
 Compute the acoustic mass matrix.
 
-
 # Arguments
-`self`   =  acoustics model
-`assembler`  =  matrix assembler
-`geom` = geometry field
-`P` = acoustic (perturbation) pressure field
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler
+- `geom` = geometry field
+- `P` = acoustic (perturbation) pressure field
 
 Return a matrix.
 """
@@ -105,6 +102,12 @@ end
       A<:AbstractSysvecAssembler}
 
 Compute load vector for nonzero EBC for prescribed pressure.
+
+# Arguments
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler
+- `geom` = geometry field
+- `P` = acoustic (perturbation) pressure field
 """
 function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes
@@ -145,6 +148,12 @@ end
       A<:AbstractSysmatAssembler}
 
 Compute the acoustic stiffness matrix.
+
+# Arguments
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler
+- `geom` = geometry field
+- `Pddot` = second order rate of the acoustic (perturbation) pressure field
 """
 function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pddot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
@@ -186,6 +195,12 @@ end
       A<:AbstractSysvecAssembler}
 
 Compute load vector for nonzero EBC for prescribed second-order pressure rate.
+
+# Arguments
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler
+- `geom` = geometry field
+- `Pddot` = second order rate of the acoustic (perturbation) pressure field
 """
 function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pddot::NodalField{T}) where {T<:Number, A<:AbstractSysvecAssembler}
     fes = self.integdomain.fes
