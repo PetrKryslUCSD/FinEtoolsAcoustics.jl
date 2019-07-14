@@ -1,9 +1,10 @@
 # Guide
 
+The [`FinEtools`](https://petrkryslucsd.github.io/FinEtools.jl/latest/index.html) package is used here to solve heat conduction problems.
+
 ## Modules
 
-The FinEtools package consists of many modules which fall into several  categories. The top-level module, `FinEtools`, includes all other modules and exports functions to constitute the public interface. The user is free to generate their own public interface, however. More details are provided [Make up your own public interface](@ref).
-
+The package `FinEtoolsAcoustics` has the following structure:
 
 - Top-level:
      `FinEtoolsAcoustics` is the  top-level module.  
@@ -11,7 +12,7 @@ The FinEtools package consists of many modules which fall into several  categori
 - Acoustics: `AlgoAcoustModule` (algorithms), `FEMMAcoustModule`, `FEMMAcoustSurfModule` (FEM machines to evaluate the matrix and vector quantities),  `MatAcoustFluidModule` (acoustic fluid material).
 
 
-### Acoustics FEM machines
+## Acoustics FEM machines
 
 There is one for  the interior integrals  and one for  boundary integrals.
 The  machine for the interior integrals can be used to compute:
@@ -25,8 +26,6 @@ The machine for the boundary integrals can be used to compute:
 - Compute  transformation matrix to convert  pressure  to resultant force  or pressure to resultant torque.
 
 - Compute the acoustic  ABC  (absorbing boundary condition) matrix.
-
-## Algorithms
 
 ### Acoustics algorithms
 
