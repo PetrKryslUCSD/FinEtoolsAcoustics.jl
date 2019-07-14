@@ -6,7 +6,7 @@
 ### Acoustics
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.FEMMAcoustModule, FinEtools.FEMMAcoustSurfModule]
+Modules = [FinEtools, FinEtoolsAcoustics.FEMMAcoustModule, FinEtoolsAcoustics.FEMMAcoustSurfModule]
 Private = true
 Order = [:function]
 ```
@@ -16,7 +16,7 @@ Order = [:function]
 ### Acoustics
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.AlgoAcoustModule]
+Modules = [FinEtools, FinEtoolsAcoustics.AlgoAcoustModule]
 Private = true
 Order = [:function]
 ```
@@ -26,7 +26,7 @@ Order = [:function]
 ### Material models for acoustics
 
 ```@autodocs
-Modules = [FinEtools, FinEtools.MatAcoustFluidModule]
+Modules = [FinEtools, FinEtoolsAcoustics.MatAcoustFluidModule]
 Private = true
 Order = [:function]
 ```

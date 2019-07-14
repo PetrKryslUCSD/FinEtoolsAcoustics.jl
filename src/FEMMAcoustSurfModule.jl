@@ -36,8 +36,8 @@ end
 """
     FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:AbstractFESet, F<:Function, M}
 
-Create the FEMM for integrals over the surface. The normal is computed from
-the geometry of the surface elements.
+Create the FEMM for integrals over the surface. The normal is computed
+from the geometry of the surface elements.
 """
 function FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:AbstractFESet, F<:Function, M}
     function getnormal!(n::FFltVec, loc::FFltMat, J::FFltMat)
@@ -62,6 +62,12 @@ end
       Pdot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
 
 Compute the acoustic ABC (Absorbing Boundary Condition) matrix.
+
+# Arguments
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler; must be able to assemble unsymmetric matrix
+- `geom` = geometry field
+- `Pdot` = rate of the acoustic (perturbation) pressure field
 """
 function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
@@ -113,6 +119,13 @@ end
 
 Compute the rectangular coupling matrix that transcribes given pressure
 on the surface into the resultant force acting on the surface.
+
+# Arguments
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler; must be able to assemble unsymmetric matrix
+- `geom` = geometry field
+- `P` = acoustic (perturbation) pressure field
+- `Force` = field for the force resultant
 """
 function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number, A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
@@ -163,6 +176,13 @@ end
 Compute the rectangular coupling matrix that transcribes given pressure
 on the surface into the resultant torque acting on the surface with respect
 to the CG.
+
+# Arguments
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler; must be able to assemble unsymmetric matrix
+- `geom` = geometry field
+- `P` = acoustic (perturbation) pressure field
+- `Torque` = field for the torque resultant
 """
 function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number,  A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
@@ -209,22 +229,23 @@ end
 
 Compute the acoustic pressure-structure coupling matrix.
 
-The acoustic pressure-nodal force matrix transforms
-the pressure distributed along the surface to forces acting on the nodes
-of the finite element model. Its transpose transforms displacements (or velocities, or
-accelerations) into the normal component of the displacement (or
-velocity, or acceleration) along the surface.
+The acoustic pressure-nodal force matrix transforms the pressure
+distributed along the surface to forces acting on the nodes of the
+finite element model. Its transpose transforms displacements (or
+velocities, or accelerations) into the normal component of the
+displacement (or velocity, or acceleration) along the surface.
 
 # Arguments
-`geom`=geometry field
-`u` = displacement field
+- `geom`=geometry field
+- `u` = displacement field
 
 !!! note
 
--- `n`=outer normal (pointing into the acoustic medium).
--- The pressures along the surface are assumed constant (uniform) along
-each finite element –- panel. The panel pressures are assumed to
-be given the same numbers as the serial numbers of the finite elements in the block.
+- `n` = outer normal (pointing into the acoustic medium).
+- The pressures along the surface are assumed constant (uniform) along
+    each finite element –- panel. The panel pressures are assumed to be
+    given the same numbers as the serial numbers of the finite elements in
+    the set.
 """
 function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T}
     fes = self.integdomain.fes
