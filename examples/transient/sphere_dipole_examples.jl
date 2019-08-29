@@ -1,5 +1,6 @@
 module sphere_dipole_examples
 using FinEtools
+using FinEtoolsAcoustics
 using LinearAlgebra
 
 

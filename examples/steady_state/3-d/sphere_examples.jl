@@ -1,5 +1,6 @@
 module sphere_examples
 using FinEtools
+using FinEtoolsAcoustics
 using FinEtools.MeshExportModule
 using LinearAlgebra
 

@@ -1,5 +1,6 @@
 module straight_duct_examples
 using FinEtools
+using FinEtoolsAcoustics
 using UnicodePlots
 
 function straight_duct_Q8_example()

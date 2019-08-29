@@ -1,5 +1,6 @@
 module baffled_piston_examples
 using FinEtools
+using FinEtoolsAcoustics
 using LinearAlgebra
 
 function baffled_piston_H8_ABC_example_algo()
@@ -69,7 +70,7 @@ function baffled_piston_H8_ABC_example_algo()
     "flux_bcs"=>[flux1], "ABCs"=>[abc1])
     
     # Call the solver
-    modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
+    modeldata = FinEtoolsAcoustics.AlgoAcoustModule.steadystate(modeldata)
     
     println("Computing time elapsed  =  ",time() - t1,"s")
     println("Total time elapsed  =  ",time() - t0,"s")

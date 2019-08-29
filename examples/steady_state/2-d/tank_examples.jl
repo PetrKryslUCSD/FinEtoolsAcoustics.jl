@@ -1,6 +1,7 @@
 module tank_examples
 using FinEtools
-using FinEtools.AlgoAcoustModule
+using FinEtoolsAcoustics
+using FinEtoolsAcoustics.AlgoAcoustModule
 
 function tank_piston_platten()
     println("""
@@ -73,7 +74,7 @@ function tank_piston_platten()
     "regions"=>[region1], "flux_bcs"=>[flux1], "essential_bcs"=>[ebc2]);
     
     # Call the solver
-    modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
+    modeldata = AlgoAcoustModule.steadystate(modeldata)
     geom = modeldata["geom"]
     P = modeldata["P"]
     println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
@@ -157,7 +158,7 @@ function tank_piston_platten_pressure()
     "regions"=>[region1], "essential_bcs"=>[ebc1 ebc2]);
     
     # Call the solver
-    modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
+    modeldata = AlgoAcoustModule.steadystate(modeldata)
     geom = modeldata["geom"]
     P = modeldata["P"]
     println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values)))")

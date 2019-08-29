@@ -1,5 +1,6 @@
 module Fahy_examples
 using FinEtools
+using FinEtoolsAcoustics
 using UnicodePlots
 import Arpack: eigs
 

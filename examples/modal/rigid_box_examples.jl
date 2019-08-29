@@ -1,5 +1,6 @@
 module rigid_box_examples
 using FinEtools
+using FinEtoolsAcoustics
 import Arpack: eigs
 
 function rigid_box_Q4_example()

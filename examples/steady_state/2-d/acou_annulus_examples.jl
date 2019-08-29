@@ -1,6 +1,7 @@
 module acou_annulus_examples
 using FinEtools
-using FinEtools.AlgoAcoustModule
+using FinEtoolsAcoustics
+using FinEtoolsAcoustics.AlgoAcoustModule
 
 
 function acou_annulus_Q4_example_algo()
@@ -43,7 +44,7 @@ function acou_annulus_Q4_example_algo()
     "regions"=>[region1], "essential_bcs"=>[ebc1]);
     
     # Call the solver
-    modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
+    modeldata = AlgoAcoustModule.steadystate(modeldata)
     geom=modeldata["geom"]
     P=modeldata["P"]
     println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
