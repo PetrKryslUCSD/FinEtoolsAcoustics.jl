@@ -14,7 +14,7 @@ import FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
 import ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
 import FinEtools.MatModule: massdensity
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
-import FinEtools.FieldModule: ndofs, gatherdofnums!
+import FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField
 import FinEtools.GeneralFieldModule: GeneralField
 import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
@@ -85,15 +85,17 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot:
     mass_density  =   massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     # Prepare assembler and temporaries
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
     De = fill(zero(FFlt), Dedim, Dedim);                # element matrix -- used as a buffer
     dofnums = fill(zero(FInt), Dedim); # degree of freedom array -- used as a buffer
     loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     startassembly!(assembler, Dedim, Dedim, nfes, Pdot.nfreedofs, Pdot.nfreedofs);
     for i = 1:count(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(De, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             ffactor = (Jac/c*w[j])
             add_nnt_ut_only!(De, Ns[j], ffactor)
@@ -139,6 +141,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
     Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
@@ -148,9 +151,10 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
     gatherdofnums!(Force, rowdofnums, [1 2 3]);# retrieve degrees of freedom
     startassembly!(assembler, 3, edim, count(fes), 3, P.nfreedofs);
     for i = 1:count(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             ffactor = (Jac*w[j])
@@ -196,6 +200,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
     Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
     coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
@@ -205,9 +210,10 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     gatherdofnums!(Torque, rowdofnums, [1 2 3]);# retrieve degrees of freedom
     startassembly!(assembler, 3, edim, count(fes), 3, P.nfreedofs);
     for i = 1:count(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             ffactor = (Jac*w[j])
@@ -256,6 +262,7 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
     coldofnums = zeros(FInt, 1, 1); # degree of freedom array -- used as a buffer
     rowdofnums = zeros(FInt, 1, sdim*nne); # degree of freedom array -- used as a buffer
     loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
@@ -264,9 +271,10 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
     Ge = fill(zero(FFlt), sdim*nne, 1); # Element matrix -- used as a buffer
     startassembly!(assembler, size(Ge, 1), size(Ge, 2), count(fes), u.nfreedofs, count(fes));
     for i = 1:count(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
-            locjac!(loc, J, geom.values, fes.conn[i], Ns[j], gradNparams[j])
+            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             n = self.getnormal!(n, loc, J);
             Ge = Ge + (Jac*w[j])*reshape(reshape(n, sdim, 1)*transposedNs[j], size(Ge, 1), size(Ge, 2))
