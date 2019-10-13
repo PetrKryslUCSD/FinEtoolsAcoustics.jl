@@ -36,11 +36,11 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[FinEtools]]
 deps = ["Arpack", "DelimitedFiles", "LinearAlgebra", "Printf", "Random", "SparseArrays", "Statistics", "StatsBase", "Test", "Unicode"]
-git-tree-sha1 = "772578380fa02de6aab35d17f14d7549c9871b39"
-repo-rev = "development"
+git-tree-sha1 = "ceb9672d0fd5da74326ac679be7e7460a0004db6"
+repo-rev = "master"
 repo-url = "https://github.com/PetrKryslUCSD/FinEtools.jl.git"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
-version = "3.0.1"
+version = "4.0.0"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
