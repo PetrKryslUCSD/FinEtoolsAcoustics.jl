@@ -6,10 +6,9 @@ The [`FinEtools`](https://petrkryslucsd.github.io/FinEtools.jl/latest/index.html
 
 The package `FinEtoolsAcoustics` has the following structure:
 
-- Top-level:
-     `FinEtoolsAcoustics` is the  top-level module.  
+- **Top-level**:     `FinEtoolsAcoustics` is the  top-level module.  
 
-- Acoustics: `AlgoAcoustModule` (algorithms), `FEMMAcoustModule`, `FEMMAcoustSurfModule` (FEM machines to evaluate the matrix and vector quantities),  `MatAcoustFluidModule` (acoustic fluid material).
+- **Acoustics**: `AlgoAcoustModule` (algorithms), `FEMMAcoustModule`, `FEMMAcoustSurfModule` (FEM machines to evaluate the matrix and vector quantities),  `MatAcoustFluidModule` (acoustic fluid material).
 
 
 ## Acoustics FEM machines
