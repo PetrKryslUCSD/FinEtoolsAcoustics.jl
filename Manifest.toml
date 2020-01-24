@@ -46,7 +46,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[FinEtools]]
 deps = ["Arpack", "DelimitedFiles", "LinearAlgebra", "LoopVectorization", "Printf", "Random", "SparseArrays", "Statistics", "StatsBase", "Test", "Unicode"]
-path = "../FinEtools.jl"
+git-tree-sha1 = "327a1130780ee9e2a81d94d175fc51cb24b284cd"
+repo-rev = "master"
+repo-url = "https://github.com/PetrKryslUCSD/FinEtools.jl.git"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 version = "4.0.5"
 
@@ -180,6 +182,6 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[VectorizationBase]]
 deps = ["CpuId", "LinearAlgebra"]
-git-tree-sha1 = "5afec48a494f1e84fb39045ce5ab5147309746f3"
+git-tree-sha1 = "857bbe7e7883f4e2d14712c88a53a2340768e4fa"
 uuid = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
-version = "0.2.0"
+version = "0.2.1"
