@@ -13,7 +13,7 @@
 ##
 # ## Definitions
 
-# The finite element code realize on the basic functionality implemented in this
+# The finite element code relies on the basic functionality implemented in this
 # package.
 using FinEtools
 # The acoustics functionality is brought in:
