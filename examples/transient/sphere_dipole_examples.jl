@@ -26,11 +26,6 @@ function sphere_dipole_transient()
     tfinal=90*dt;
     nsteps=round(tfinal/dt)+1;
     
-    println("""
-            Spherical domain filled with acoustic medium, no scatterer.
-    Hexahedral mesh.
-            """)
-    
     t0  =  time()
     
     # Hexahedral mesh
@@ -94,19 +89,7 @@ function sphere_dipole_transient()
     end
     
     dipfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, linner), GaussRule(2, 2)), material)
-    # F  = distribloads(dipfemm, geom, P, fi, 2);
-    #
-    # K = lu((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
-    # p = K\F  #
-    #
-    # scattersysvec!(P, p[:])
-    
-    # println(" Minimum/maximum pressure= $(minimum(real(p)))/$(maximum(real(p)))")
-    
-    println("Computing time elapsed  =  ",time() - t1,"s")
-    println("Total time elapsed  =  ",time() - t0,"s")
-    
-    
+
     # Solve
     P0 = deepcopy(P)
     P0.values[:] .= 0.0; # initially all pressure is zero
@@ -126,20 +109,8 @@ function sphere_dipole_transient()
     while t <= tfinal
       step = step  + 1;
       println("Time $t ($(step)/$(round(tfinal/dt)+1))")
-      # if graphics
-      #   Camera =1.0e+003 * [-1.4303   -3.0332   -2.0483    0.1553    0.2912    0.2533         0         0    0.0010    0.0066];
-      #   wv = get(P1,'values');
-      #   dcm=data_colormap(struct ('range',P_amplitude*[-1,1], 'colormap',bwr));
-      #   colors=map_data(dcm, wv);
-      #   colorfield = field(struct ('name',['cf'], 'dim', 3, 'data',colors));
-      #   gv=reset (gv,[]);
-      #   camset(gv,Camera);
-      #   draw(bfeb,gv, struct ('x', geom,'u',0*geom,'colorfield',colorfield));
-      #   draw_axes (gv,struct('length',R));
-      #   pause(0.55);
-      # end
       t = t+dt;
-      fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
+      fi  = ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
       La1 = distribloads(dipfemm, geom, P1, fi, 2);
       vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-C*(2*vP0+(dt/2)*vQ0)+La0+La1);
       vP1 = vP0 + (dt/2)*(vQ0+vQ1);
@@ -150,10 +121,8 @@ function sphere_dipole_transient()
       La0 = La1;
     end
     
-    println("$(vP1[1])")
-    
     File  =   "sphere_dipole_1.vtk"
-    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.VTK.H8;
      scalars = [( "realP", real(P1.values))])
     @async run(`"paraview.exe" $File`)
     
