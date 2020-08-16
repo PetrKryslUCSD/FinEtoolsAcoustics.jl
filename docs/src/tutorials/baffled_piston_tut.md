@@ -8,7 +8,7 @@ Baffled piston in a half-sphere domain with Absorbing Boundary Condition (ABC).
 
 ## Goals
 
--
+- Demonstrate the use of an algorithm to run the simulation.
 
 ```julia
 #
@@ -16,7 +16,7 @@ Baffled piston in a half-sphere domain with Absorbing Boundary Condition (ABC).
 
 ## Definitions
 
-The finite element code realize on the basic functionality implemented in this
+The finite element code relies on the basic functionality implemented in this
 package.
 
 ```julia
@@ -82,42 +82,61 @@ louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmi
 outer_fes = subset(bfes,louter);
 ```
 
-Region of the fluid
+The simulation is driven by setting up and then executing an algorithm. For
+this purpose we store the data in a "model data dictionary".
+
+Region of the fluid. Define the finite element machine for the fluid region.
 
 ```julia
 material = MatAcoustFluid(bulk, rho)
 region1 =  FDataDict("femm"=>FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material))
 ```
 
-Surface for the ABC
+Define the finite element machine for the ABC (absorbing boundary condition).
 
 ```julia
 abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)), material))
 ```
 
-Surface of the piston
+The normal flux is prescribed on the surface of the piston in terms of the
+known acceleration.
 
 ```julia
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)), material),  "normal_flux"=> -rho*a_piston+0.0im);
 ```
 
-Make model data
+Make model data dictionary. It completely defines the parameters of the
+problem.
 
 ```julia
-modeldata =  FDataDict("fens"=>  fens, "omega"=>omega, "regions"=>[region1], "flux_bcs"=>[flux1], "ABCs"=>[abc1])
+modeldata =  FDataDict("fens"=>fens, "omega"=>omega, "regions"=>[region1], "flux_bcs"=>[flux1], "ABCs"=>[abc1])
 ```
 
-Call the solver
+Call the solver. The model data is returned enriched of the solution
+parameters, such as the pressure field `P`.
 
 ```julia
 modeldata = FinEtoolsAcoustics.AlgoAcoustModule.steadystate(modeldata)
+```
 
+Extract geometry field and the pressure field for postprocessing.
+
+```julia
 geom = modeldata["geom"]
 P = modeldata["P"]
+```
 
+Write out the postprocessing data is a VTK file. Dump both the magnitude and
+the components of the solution (complex field).
+
+```julia
 File  =   "baffledabc.vtk"
-vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
-scalars = [("absP", abs.(P.values))])
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8; scalars = [("absP", abs.(P.values)), ("realP", real.(P.values)), ("imagP", imag.(P.values))])
+```
+
+If the `paraview` program is installed, run it.
+
+```julia
 @async run(`"paraview.exe" $File`)
 
 true
