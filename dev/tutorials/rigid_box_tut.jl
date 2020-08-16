@@ -1,4 +1,4 @@
-# # Modal analysis of simply supported/clamped beam
+# # Modal analysis of acoustic medium in a rigid box
 
 # ## Description
 
