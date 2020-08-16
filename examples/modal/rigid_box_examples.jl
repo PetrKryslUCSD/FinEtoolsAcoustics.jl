@@ -48,7 +48,7 @@ function rigid_box_Q4_example()
     for n  = 1:15
         push!(scalarllist, ("Pressure_mode_$n", v[:,n]));
     end
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q4;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.Q4;
     scalars=scalarllist)
     @async run(`"paraview.exe" $File`)
     

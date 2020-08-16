@@ -14,6 +14,8 @@ using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
+- 08/16/2020: Added tutorials.
+- 08/16/2020: Dependencies updated.
 - 01/23/2020: Dependencies have been updated to work with Julia 1.3.1.
 
 
