@@ -8,7 +8,7 @@
 
 # ## Goals
 
-# - 
+# - Demonstrate the use of an algorithm to run the simulation.
 
 ##
 # ## Definitions
@@ -57,28 +57,37 @@ piston_fes = subset(bfes,intersect(l1,l2));
 louter = selectelem(fens, bfes, facing = true, direction = [1.0 1.0  1.0], dotmin= 0.001)
 outer_fes = subset(bfes,louter);
 
-# Region of the fluid
+# The simulation is driven by setting up and then executing an algorithm. For
+# this purpose we store the data in a "model data dictionary".
+
+# Region of the fluid. Define the finite element machine for the fluid region.
 material = MatAcoustFluid(bulk, rho)
 region1 =  FDataDict("femm"=>FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material))
 
-# Surface for the ABC
+# Define the finite element machine for the ABC (absorbing boundary condition).
 abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)), material))
 
-# Surface of the piston
+# The normal flux is prescribed on the surface of the piston in terms of the
+# known acceleration.
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)), material),  "normal_flux"=> -rho*a_piston+0.0im);
 
-# Make model data
-modeldata =  FDataDict("fens"=>  fens, "omega"=>omega, "regions"=>[region1], "flux_bcs"=>[flux1], "ABCs"=>[abc1])
+# Make model data dictionary. It completely defines the parameters of the
+# problem.
+modeldata =  FDataDict("fens"=>fens, "omega"=>omega, "regions"=>[region1], "flux_bcs"=>[flux1], "ABCs"=>[abc1])
 
-# Call the solver
+# Call the solver. The model data is returned enriched of the solution
+# parameters, such as the pressure field `P`.
 modeldata = FinEtoolsAcoustics.AlgoAcoustModule.steadystate(modeldata)
 
+# Extract geometry field and the pressure field for postprocessing.
 geom = modeldata["geom"]
 P = modeldata["P"]
 
+# Write out the postprocessing data is a VTK file. Dump both the magnitude and
+# the components of the solution (complex field).
 File  =   "baffledabc.vtk"
-vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
-scalars = [("absP", abs.(P.values))])
+vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8; scalars = [("absP", abs.(P.values)), ("realP", real.(P.values)), ("imagP", imag.(P.values))])
+# If the `paraview` program is installed, run it.
 @async run(`"paraview.exe" $File`)
 
 true
