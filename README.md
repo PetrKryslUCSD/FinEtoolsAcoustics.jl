@@ -80,6 +80,27 @@ Acoustics     |   25     25
    Testing FinEtoolsAcoustics tests passed
 ```
 
+## Tutorials
+
+
+Clone the package to your working directory:
+```
+git clone https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl.git
+```
+
+Change your working directory to `FinEtoolsAcoustics`. Start Julia and run
+the following:
+
+```
+using Pkg; Pkg.activate("."); Pkg.instantiate()
+```
+
+The tutorials are in the form of Julia scripts in the folder `FinEtoolsAcoustics.jl/docs/src/tutorials`. The markdown generated from these files is also in the same folder.
+
+To view the markdown, follow the link to the documentation.
+
+To run a tutorial, head over to the `tutorials` folder, open the tutorial script, and evaluate in Julia.
+
 ## Examples
 
 There are a number of examples covering modal analysis, steady-state, and
