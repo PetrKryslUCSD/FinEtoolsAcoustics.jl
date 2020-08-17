@@ -1,10 +1,10 @@
-# # Baffled piston in a half-sphere domain
+# # Moving sphere in an infinite fluid
 
 # ## Description
 
-# The interior sphere accelerates alternately in the positive and negative
-# x-direction, generating positive pressure ahead of it, negative pressure
-# behind. Time-dependent simulation. Described in [1].
+# A rigid sphere in an infinite volume of fluid accelerates alternately in the
+# positive and negative x-direction, generating positive pressure ahead of it,
+# negative pressure behind. Time-dependent simulation. Described in [1].
 
 # ## References
 
@@ -12,11 +12,12 @@
 # Solid Scatterers in Response to Progressive Planar Acoustic Waves: Do Fish
 # Otoliths Rock?. PLOS ONE 7(8): e42591. https://doi.org/10.1371/journal.pone.0042591
 
-# ![](baffled_piston.png)
+# ![](sphere_dipole.png)
 
 # ## Goals
 
-# - Demonstrate the use of an algorithm to run the simulation.
+# - Show how to generate hexahedral mesh, mirroring and merging together parts.
+# - Execute transient simulation by the trapezoidal-rule time stepping of [1].
 
 ##
 # ## Definitions
@@ -36,18 +37,19 @@ rho = 1.21*phun("kg/m^3");# mass density
 c  = 343.0*phun("m/s");# sound speed
 bulk =  c^2*rho;
 a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
-# omega = 2000*phun("rev/s");      # frequency of the incident wave
 R = 50.0*phun("mm"); # radius of the interior sphere
-Ro = 8*R # radius of the external sphere
+Ro = 8*R # radius of the external sphere, where the fluid doing this truncated
 P_amplitude = R*rho*a_amplitude; # pressure amplitude
-nref=2;
-nlayers=40;
-tolerance = Ro/(nlayers)/100
-frequency=1200.; # Hz
-omega=2*pi*frequency;
-dt=1.0/frequency/20;
-tfinal=90*dt;
-nsteps=round(tfinal/dt)+1;
+frequency = 1200.; # # frequency of the incident wave, Hz
+omega = 2*pi*frequency;
+dt = 1.0/frequency/20;
+tfinal = 90*dt;
+nsteps = round(tfinal/dt)+1;
+
+# This dictates the parameters of the mesh.
+nref = 2;
+nlayers = 40;
+tolerance  =  Ro/(nlayers)/100
     
 # Hexahedral mesh: Generate 1/8 of the scattering sphere. This sphere is not
 # actually part of the model, it just serves as an intermediate step from which
@@ -149,21 +151,27 @@ dipfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, linner), GaussRule(2, 2)), m
 # Solve the transient acoustics equations. Refer to [1] for details of the
 # formulation. 
 
+# The loop executes inside this local scope. 
 P1 = let
     P0 = deepcopy(P)
     P0.values[:] .= 0.0; # initially all pressure is zero
     vP0 = gathersysvec(P0);
-    vP1 = zeros(eltype(vP0), size(vP0));
+    # vP1 = zeros(eltype(vP0), size(vP0));
     vQ0 = zeros(eltype(vP0), size(vP0));
-    vQ1 = zeros(eltype(vP0), size(vP0));
-    t = 0.0;
-    P1 = deepcopy(P0);
+    # vQ1 = zeros(eltype(vP0), size(vP0));
+    # This will be the output of this computation: the final value of the
+    # pressure field
+    P1 = deepcopy(P0); 
 
+    t = 0.0; # Initial time
+    # Compute the initial load due to the pressure gradient on the surface of
+    # the moving sphere.
     fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
     La0 = distribloads(dipfemm, geom, P1, fi, 2);
-    # This is the coefficient matrix that needs to be used in the solves. We are not
-    # being very careful here to save on computation: it might be best to factorize
-    # this matrix, and then use backward and forward solves inside the loop.
+    # This is the coefficient matrix that needs to be used in the solves. We are
+    # not being very careful here to save on computation: it might be best to
+    # factorize this matrix, and then use backward and forward solves inside
+    # the loop.
     A = (2.0/dt)*S + D + (dt/2.)*C;
 
     step = 0;
@@ -171,10 +179,15 @@ P1 = let
         step = step  + 1;
         println("Time $t ($(step)/$(round(tfinal/dt)+1))")
         t = t+dt;
+        # Compute the current load due to the pressure gradient on the surface of
+        # the moving sphere.
         fi  = ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
         La1 = distribloads(dipfemm, geom, P1, fi, 2);
+        # Solve for the rate of the pressure
         vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-C*(2*vP0+(dt/2)*vQ0)+La0+La1);
+        # Update the value of the pressure
         vP1 = vP0 + (dt/2)*(vQ0+vQ1);
+        # Swap variables for next step  
         vP0 = vP1;
         vQ0 = vQ1;
         P1 = scattersysvec!(P1, vec(vP1));
@@ -185,10 +198,11 @@ P1 = let
     P1 # Return the final pressure
 end
 
+##
+# ## Visualization
 
-File  =   "sphere_dipole_1.vtk"
-vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.VTK.H8;
- scalars = [( "realP", real.(P1.values)), ( "imagP", imag.(P1.values))])
+File  =   "sphere_dipole_P1.vtk"
+vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.VTK.H8; scalars = [( "realP", real.(P1.values)),])
 @async run(`"paraview.exe" $File`)
 
 
