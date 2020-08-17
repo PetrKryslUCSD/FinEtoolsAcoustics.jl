@@ -2,9 +2,15 @@
 
 # ## Description
 
-# The interior sphere accelerates in the alternately in the positive and
-# negative x-direction, generating positive pressure ahead of it, negative
-# pressure behind. Time-dependent simulation.
+# The interior sphere accelerates alternately in the positive and negative
+# x-direction, generating positive pressure ahead of it, negative pressure
+# behind. Time-dependent simulation. Described in [1].
+
+# ## References
+
+# [1] Krysl P, Hawkins AD, Schilt C, Cranford TW (2012): Angular Oscillation of
+# Solid Scatterers in Response to Progressive Planar Acoustic Waves: Do Fish
+# Otoliths Rock?. PLOS ONE 7(8): e42591. https://doi.org/10.1371/journal.pone.0042591
 
 # ![](baffled_piston.png)
 
@@ -69,10 +75,14 @@ end
 louter = selectelem(fens, bfes, facing = true, direction = dout)
 outer_fes = subset(bfes, louter);
 
+# The surface of the spherical target is now extruded into multiple layers.
 fens,fes  = H8extrudeQ4(fens, outer_fes, nlayers, (xyz, layer)->(R+layer/nlayers*(Ro-R))*xyz/norm(xyz));
-connected = findunconnnodes(fens, fes); fens, new_numbering = compactnodes(fens, connected);
+# In case there are any unconnected nodes, remove them, and renumber the elements.
+connected = findunconnnodes(fens, fes); 
+fens, new_numbering = compactnodes(fens, connected);
 fess = renumberconn!(fes, new_numbering);
 
+# The geometry and the solution (pressure) fields.
 geom  =  NodalField(fens.xyz)
 P  =  NodalField(zeros(FCplxFlt,size(fens.xyz,1),1))
 
@@ -81,75 +91,104 @@ P  =  NodalField(zeros(FCplxFlt,size(fens.xyz,1),1))
 # infinite extent of the fluid.
 bfes  =  meshboundary(fes)
 
-# File  =   "Sphere.vtk"
-# vtkexportmesh(File, bfes.conn, geom.values, FinEtools.MeshExportModule.Q4)
-# @async run(`"paraview.exe" $File`)
-
-# File  =   "Sphere.vtk"
-# vtkexportmesh (File, fes.conn, fens.xyz, MeshExportModule.H8)
-# @async run(`"C:/Program Files (x86)/ParaView 4.2.0/bin/paraview.exe" $File`)
-
+# Find the two spherical surfaces, one can be located by the distance criterion
+# (from the center), and the other one by facing to infinity (away from the
+# center).
 linner = selectelem(fens, bfes, distance = R, from = [0.0 0.0 0.0], inflate = tolerance)
 louter = selectelem(fens, bfes, facing = true, direction = dout)
 
-println("Pre-processing time elapsed  =  ",time() - t0,"s")
+##
+# ## Visualize the geometry
 
-t1  =  time()
+# Export three VTK files: one for the interior of the fluid, and two for the boundaries.
+# The boundaries on the symmetry planes are taken into account implicitly.
+File  =   "Sphere-fluid-interior.vtk"
+vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.VTK.H8)
+File  =   "Sphere-fluid-inner-boundary.vtk"
+vtkexportmesh(File, subset(bfes, linner).conn, geom.values, FinEtools.MeshExportModule.VTK.Q4)
+File  =   "Sphere-fluid-outer-boundary.vtk"
+vtkexportmesh(File, subset(bfes, louter).conn, geom.values, FinEtools.MeshExportModule.VTK.Q4)
 
+# If we have paraview, we can run it now.
+@async run(`"paraview.exe" $File`)
+
+##
+# ## Set up the discrete model
+
+# Number the degrees of freedom in the pressure field.
 numberdofs!(P)
 
+# Create the finite element machine for the fluid.
 material = MatAcoustFluid(bulk,rho)
 femm  =  FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
-
+# Use the machine calculate the acoustic stiffness and mass matrices.
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
+# Set up finite element machine needed for the absorbing boundary conditions.
 abcfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, louter), GaussRule(2, 2)), material)
+# This is the "damping" mmatrix for the ABC.
 D  =  acousticABC(abcfemm, geom, P);
 
-# Inner sphere pressure loading
+# The sphere at the center is rigid and moves in a prescribed, harmonic,
+# fashion. That generates loading onto the fluid. We expect the loading to be
+# in the form of a dipole.
 function dipole(dpdn, xyz, J, label, t)
     n = cross(J[:,1],J[:,2]);
     n = vec(n/norm(n));
     dpdn[1] = -rho*a_amplitude*sin(omega*t)*n[1]
 end
-
+# In order to evaluate the distributed pressure flux loading we need a surface
+# acoustic finite element model machine. We shall set it up for the interior
+# spherical surface.
 dipfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, linner), GaussRule(2, 2)), material)
 
-# Solve
-P0 = deepcopy(P)
-P0.values[:] .= 0.0; # initially all pressure is zero
-vP0 = gathersysvec(P0);
-vP1 = zeros(eltype(vP0), size(vP0));
-vQ0 = zeros(eltype(vP0), size(vP0));
-vQ1 = zeros(eltype(vP0), size(vP0));
-t = 0.0;
-P1 = deepcopy(P0);
+##
+# ## Time stepping
 
-fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
-La0 = distribloads(dipfemm, geom, P1, fi, 2);
+# Solve the transient acoustics equations. Refer to [1] for details of the
+# formulation. 
 
-A = (2.0/dt)*S + D + (dt/2.)*C;
+P1 = let
+    P0 = deepcopy(P)
+    P0.values[:] .= 0.0; # initially all pressure is zero
+    vP0 = gathersysvec(P0);
+    vP1 = zeros(eltype(vP0), size(vP0));
+    vQ0 = zeros(eltype(vP0), size(vP0));
+    vQ1 = zeros(eltype(vP0), size(vP0));
+    t = 0.0;
+    P1 = deepcopy(P0);
 
-step =0;
-while t <= tfinal
-  step = step  + 1;
-  println("Time $t ($(step)/$(round(tfinal/dt)+1))")
-  t = t+dt;
-  fi  = ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
-  La1 = distribloads(dipfemm, geom, P1, fi, 2);
-  vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-C*(2*vP0+(dt/2)*vQ0)+La0+La1);
-  vP1 = vP0 + (dt/2)*(vQ0+vQ1);
-  vP0 = vP1;
-  vQ0 = vQ1;
-  P1 = scattersysvec!(P1, vec(vP1));
-  P0 = P1;
-  La0 = La1;
+    fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
+    La0 = distribloads(dipfemm, geom, P1, fi, 2);
+    # This is the coefficient matrix that needs to be used in the solves. We are not
+    # being very careful here to save on computation: it might be best to factorize
+    # this matrix, and then use backward and forward solves inside the loop.
+    A = (2.0/dt)*S + D + (dt/2.)*C;
+
+    step = 0;
+    while t <= tfinal
+        step = step  + 1;
+        println("Time $t ($(step)/$(round(tfinal/dt)+1))")
+        t = t+dt;
+        fi  = ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
+        La1 = distribloads(dipfemm, geom, P1, fi, 2);
+        vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-C*(2*vP0+(dt/2)*vQ0)+La0+La1);
+        vP1 = vP0 + (dt/2)*(vQ0+vQ1);
+        vP0 = vP1;
+        vQ0 = vQ1;
+        P1 = scattersysvec!(P1, vec(vP1));
+        P0 = P1;
+        La0 = La1;
+    end
+
+    P1 # Return the final pressure
 end
+
 
 File  =   "sphere_dipole_1.vtk"
 vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.VTK.H8;
- scalars = [( "realP", real(P1.values))])
+ scalars = [( "realP", real.(P1.values)), ( "imagP", imag.(P1.values))])
 @async run(`"paraview.exe" $File`)
 
 
