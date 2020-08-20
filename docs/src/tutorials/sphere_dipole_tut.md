@@ -245,17 +245,11 @@ P1 = let
     P0 = deepcopy(P)
     P0.values[:] .= 0.0; # initially all pressure is zero
     vP0 = gathersysvec(P0);
-```
-
-vP1 = zeros(eltype(vP0), size(vP0));
-
-```julia
     vQ0 = zeros(eltype(vP0), size(vP0));
 ```
 
-vQ1 = zeros(eltype(vP0), size(vP0));
-This will be the output of this computation: the final value of the
-pressure field
+The `P1` field will be the output of this computation: the final value of
+the pressure field
 
 ```julia
     P1 = deepcopy(P0);
