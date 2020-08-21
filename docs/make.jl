@@ -8,7 +8,6 @@ makedocs(
 	sitename = "FinEtoolsAcoustics.jl",
 	pages = Any[
 	"Home" => "index.md",
-	"Tutorials" => "tutorials/tutorials.md",
 	"How to guide" => "guide/guide.md",
 	"Types and Functions" => Any[
 		"man/types.md",

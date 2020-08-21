@@ -2,7 +2,7 @@
 
 ## Tutorials
 
-The [tutorials](tutorials/tutorials.md) are provided in the form of Julia scripts and Markdown files. 
+The [tutorials](https://github.com/PetrKryslUCSD/FinEtoolsAcousticsTutorials.jl) are provided in the form of Julia scripts and Markdown files in a separate [package](https://github.com/PetrKryslUCSD/FinEtoolsAcousticsTutorials.jl). 
 
 ## Manual
 
