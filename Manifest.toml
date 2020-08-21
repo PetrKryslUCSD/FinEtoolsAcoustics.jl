@@ -26,12 +26,6 @@ version = "0.1.0"
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[BenchmarkTools]]
-deps = ["JSON", "Logging", "Printf", "Statistics", "UUIDs"]
-git-tree-sha1 = "9e62e66db34540a0c919d72172cc2f642ac71260"
-uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-version = "0.5.0"
-
 [[BinDeps]]
 deps = ["Libdl", "Pkg", "SHA", "URIParser", "Unicode"]
 git-tree-sha1 = "46cf2c1668ad07aba5a9d331bdeea994a1f13856"
@@ -124,7 +118,7 @@ uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 version = "4.6.1"
 
 [[FinEtoolsDeforLinear]]
-deps = ["Arpack", "BenchmarkTools", "FinEtools", "LinearAlgebra", "Literate", "PGFPlotsX", "PlotlyJS", "SparseArrays", "Statistics", "StatsBase", "SymRCM", "Test"]
+deps = ["Arpack", "FinEtools", "LinearAlgebra", "Literate", "PGFPlotsX", "PlotlyJS", "SparseArrays", "Statistics", "StatsBase", "SymRCM", "Test"]
 git-tree-sha1 = "fe31e75e07911c65246c103b92edeef9587e11ee"
 repo-rev = "master"
 repo-url = "https://github.com/PetrKryslUCSD/FinEtoolsDeforLinear.jl.git"

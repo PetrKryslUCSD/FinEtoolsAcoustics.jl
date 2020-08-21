@@ -14,8 +14,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Arpack = "^0.4"
-BenchmarkTools = "0.5"
 FinEtools = "^4"
 FinEtoolsDeforLinear = "^0.2"
-SymRCM = "^0.2"
 julia = "^1.3"
