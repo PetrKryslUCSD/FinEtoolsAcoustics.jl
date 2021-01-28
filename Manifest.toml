@@ -82,9 +82,9 @@ version = "4.8.3"
 
 [[FinEtoolsDeforLinear]]
 deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "StatsBase", "SymRCM", "Test"]
-git-tree-sha1 = "ed6b58c9bf3cb1a9b37af6e2f92e7a9b2925732f"
+git-tree-sha1 = "aae7a75ae093ae96d6288b74bd68114eff036704"
 uuid = "e9187c00-8bdd-11e9-1e70-7ba8303116a2"
-version = "0.4.0"
+version = "0.4.1"
 
 [[Hwloc]]
 deps = ["Hwloc_jll"]
