@@ -1,7 +1,7 @@
 name = "FinEtoolsAcoustics"
 uuid = "72171760-8bdd-11e9-0dbf-b3b512e82515"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "1.0"
+version = "1.1"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
@@ -16,4 +16,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Arpack = "^0.5"
 FinEtools = "^5"
 FinEtoolsDeforLinear = "^1.0"
-julia = "~1.6"
+julia = "^1.6"
