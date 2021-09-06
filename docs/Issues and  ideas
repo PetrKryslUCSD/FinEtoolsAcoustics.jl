@@ -1,8 +1,0 @@
-
-Issues and ideas:
-
-
--- Documenter:
-using FinEtoolsAcoustics
-using DocumenterTools
-Travis.genkeys(user="PetrKryslUCSD", repo="https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl")
