@@ -1,6 +1,8 @@
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
-[![Build Status](https://travis-ci.com/PetrKryslUCSD/FinEtoolsAcoustics.jl.svg?branch=master)](https://travis-ci.com/PetrKryslUCSD/FinEtoolsAcoustics.jl)
-[![Latest documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://petrkryslucsd.github.io/FinEtoolsAcoustics.jl/dev)
+[![Build status](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl/workflows/CI/badge.svg)](https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl/actions)
+[![Code Coverage](https://codecov.io/gh/PetrKryslUCSD/FinEtoolsAcoustics.jl/branch/master/graph/badge.svg)](https://app.codecov.io/gh/PetrKryslUCSD/FinEtoolsAcoustics.jl)
+[![Latest documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://petrkryslucsd.github.io/FinEtoolsAcoustics.jl/latest)
+[![Codebase Graph](https://img.shields.io/badge/Codebase-graph-green.svg)](https://octo-repo-visualization.vercel.app/?repo=PetrKryslUCSD/FinEtoolsAcoustics.jl)
 
 
 # FinEtoolsAcoustics: Linear acoustics application
