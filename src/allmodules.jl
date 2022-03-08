@@ -1,4 +1,5 @@
 include("MatAcoustFluidModule.jl")
 include("FEMMAcoustModule.jl")
+include("FEMMAcoustNICEModule.jl")
 include("FEMMAcoustSurfModule.jl")
 include("AlgoAcoustModule.jl")
