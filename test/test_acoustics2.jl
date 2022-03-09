@@ -1,5 +1,5 @@
 
-module mmfahyH8example
+module mmfahyH8example2
 using LinearAlgebra
 using FinEtools
 using FinEtoolsAcoustics
@@ -58,8 +58,8 @@ fs = real(sqrt.(complex(d)))/(2*pi)
   true
 end
 end
-using .mmfahyH8example
-mmfahyH8example.test()
+using .mmfahyH8example2
+mmfahyH8example2.test()
 
 module mmfahyT4example
 using LinearAlgebra
