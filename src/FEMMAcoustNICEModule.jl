@@ -40,11 +40,12 @@ Type for linear acoustics finite element modeling machine.
 mutable struct FEMMAcoustNICE{S<:AbstractFESet, F<:Function, M} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
     material::M # material object
+    associated::Bool
     nodalbasisfunctiongrad::Vector{_NodalBasisFunctionGradients}
 end
 
 function FEMMAcoustNICE(integdomain::IntegDomain{S, F}, material::M) where {S<:FESetT4, F<:Function, M}
-    return FEMMAcoustNICE(integdomain, material, _NodalBasisFunctionGradients[])
+    return FEMMAcoustNICE(integdomain, material, false, _NodalBasisFunctionGradients[])
 end
 
 function _patchconn(fes, gl, thisnn)
@@ -118,6 +119,7 @@ function _computenodalbfungrads(self, geom)
         end
     end
     self.nodalbasisfunctiongrad = bfungrads
+    self.associated = true
     return self
 end
 
@@ -147,6 +149,7 @@ Compute the acoustic mass matrix.
 Return a matrix.
 """
 function acousticmass(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+    @assert self.associated
     fes = self.integdomain.fes
     elmatsizeguess = 4*nodesperelem(fes)*ndofs(P)
     startassembly!(assembler, elmatsizeguess, elmatsizeguess, nnodes(P), P.nfreedofs, P.nfreedofs);

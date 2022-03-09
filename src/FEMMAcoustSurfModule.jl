@@ -156,6 +156,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+            @assert Jac != 0.0
             n = self.getnormal!(n, loc, J);
             ffactor = (Jac*w[j])
             Ge = Ge + (ffactor*n)*transposedNs[j]
