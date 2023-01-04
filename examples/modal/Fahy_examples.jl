@@ -1,7 +1,7 @@
 module Fahy_examples
 using FinEtools
 using FinEtoolsAcoustics
-using UnicodePlots
+using PlotlyLight
 import Arpack: eigs
 
 function fahy_H20_example()
@@ -39,6 +39,7 @@ function fahy_H20_example()
     
     d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
+    v = real.(v)
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
@@ -47,9 +48,9 @@ function fahy_H20_example()
     
     File =  "fahy_H20.vtk"
     en = 5;
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H20;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H20;
     scalars=[("Pressure_mode_$en", v[:,en])])
-    @async run(`"paraview.exe" $File`)
+    # @async run(`"paraview.exe" $File`)
     println("Done")
     true
     
@@ -90,6 +91,7 @@ function fahy_H27_example()
     
     d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
+    v = real.(v)
     fs = real(sqrt.(complex(d)))/(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
@@ -138,6 +140,7 @@ function fahy_H8_example()
     d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
+    v = real.(v)
     println("Eigenvalues: $fs [Hz]")
     
     
@@ -145,7 +148,7 @@ function fahy_H8_example()
     
     File =  "fahy_H8.vtk"
     en = 5;
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
     scalars=[("Pressure_mode_$en", v[:,en])])
     println("Done")
     true
@@ -188,20 +191,21 @@ function fahy_L2_example()
     d,v,nev,nconv  = eigs(C+OmegaShift*S, S; nev = neigvs, which = :SM)
     d  =  d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
+    v = real.(v)
     println("Eigenvalues: $fs [Hz]")
     
     
     println("Total time elapsed  =  ",time() - t0,"s")
     
     ix = sortperm(geom.values[:])
-    # @pgf a = Axis({
-    #           xlabel = "x",
-    #           ylabel = "P",
-    #           title = "Pressure mode 2"
-    #       },
-    #       Plot(Table([:x => geom.values[:][ix], :y => v[:,2][ix]])))
-    plt = lineplot(geom.values[:][ix], v[:,2][ix], title = "Pressure mode 2", canvas = DotCanvas, name = "P", xlabel = "x", ylabel = "P")
-    display(plt)
+
+    p = PlotlyLight.Plot()
+    p(x = geom.values[:][ix], y = v[:,2][ix], type="scatter", mode="lines+markers")
+    p.layout.title.text = "Pressure mode 2"
+    p.layout.xaxis.title = "x"
+    p.layout.yaxis.title = "Pressure Amplitude"
+    # plt = lineplot(geom.values[:][ix], v[:,2][ix], title = "Pressure mode 2", canvas = DotCanvas, name = "P", xlabel = "x", ylabel = "P")
+    display(p)
     true
     
 end # fahy_L2_example
@@ -220,5 +224,8 @@ function allrun()
     println("# fahy_L2_example ")
     fahy_L2_example()
 end # function allrun
+
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
 
 end # module Fahy_examples

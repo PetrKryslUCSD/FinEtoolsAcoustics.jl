@@ -37,6 +37,7 @@ function rigid_box_Q4_example()
     
     d,v,nev,nconv =eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
+    v = real.(v)
     fs=real(sqrt.(complex(d)))./(2*pi)
     println("Eigenvalues: $fs [Hz]")
     
@@ -61,5 +62,8 @@ function allrun()
     println("# rigid_box_Q4_example ")
     rigid_box_Q4_example()
 end # function allrun
+
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
 
 end # module rigid_box_examples

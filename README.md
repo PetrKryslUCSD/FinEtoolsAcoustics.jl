@@ -13,6 +13,7 @@ using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
+- 01/04/2023: Restructured examples. 
 - 08/23/2020: Added a separate tutorial package, [FinEtoolsAcousticsTutorials.jl](https://petrkryslucsd.github.io/FinEtoolsAcousticsTutorials.jl)).
 - 08/16/2020: Added tutorials.
 - 08/16/2020: Dependencies updated.

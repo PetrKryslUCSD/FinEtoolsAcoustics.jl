@@ -1,0 +1,13 @@
+[deps]
+Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
+FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
+FinEtoolsAcoustics = "72171760-8bdd-11e9-0dbf-b3b512e82515"
+PlotlyLight = "ca7969ec-10b3-423e-8d99-40f33abb42bf"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
+
+[compat]
+Arpack = "=0.5.3"
+FinEtools = "^5"
+FinEtoolsDeforLinear = "^1.4"
+julia = "^1.7"

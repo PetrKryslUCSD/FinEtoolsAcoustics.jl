@@ -112,7 +112,10 @@ function _computenodalbfungrads(self, geom)
                 sgradN = gradNparams[pci] * adjugate3!(adjJ, J);
                 gradNavg[lnmap[kconn],:] += (w[pci] .* sgradN);
             end
-            @assert Vpatch != 0
+            if Vpatch == 0
+                @show geom.values[thisnn, :]
+                @show p
+            end
             gradNavg ./= Vpatch;
             bfungrads[nix] = _NodalBasisFunctionGradients(gradNavg, p, Vpatch);
             lnmap[p] .= 0; # Restore the buffer to pristine condition
