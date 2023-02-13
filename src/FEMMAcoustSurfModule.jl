@@ -16,6 +16,7 @@ import FinEtools.MatModule: massdensity
 import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
 import FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat!
 import FinEtools.NodalFieldModule: NodalField
+import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 import FinEtools.GeneralFieldModule: GeneralField
 import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
 import FinEtools.FEMMBaseModule: AbstractFEMM
@@ -27,33 +28,9 @@ import LinearAlgebra: norm, cross
 
 Class for linear acoustics finite element modeling machine.
 """
-mutable struct FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M, NF<:Function} <: AbstractFEMM
+mutable struct FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M} <: AbstractFEMM
     integdomain::IntegDomain{S, F} # geometry data
     material::M # material object
-    getnormal!::NF # get the  normal to the surface
-end
-
-"""
-    FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:AbstractFESet, F<:Function, M}
-
-Create the FEMM for integrals over the surface. The normal is computed
-from the geometry of the surface elements.
-"""
-function FEMMAcoustSurf(integdomain::IntegDomain{S, F},  material::M) where {S<:AbstractFESet, F<:Function, M}
-    function getnormal!(n::FFltVec, loc::FFltMat, J::FFltMat)
-        sdim, mdim = size(J);
-        if     mdim == 1 # 1-D fe
-        	N = [J[2,1],-J[1,1]];
-        elseif     mdim == 2 # 2-D fe
-        	N = cross(J[:,1],J[:,2])
-        else
-        	error("Got an incorrect size of tangents");
-        end
-        N=N/norm(N)
-        copyto!(n, N)
-        return n;
-    end
-    return FEMMAcoustSurf(integdomain, material, getnormal!)
 end
 
 """
@@ -129,7 +106,7 @@ on the surface into the resultant force acting on the surface.
 - `P` = acoustic (perturbation) pressure field
 - `Force` = field for the force resultant
 """
-function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number, A<:AbstractSysmatAssembler}
+function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField, surfacenormal::SurfaceNormal) where {T<:Number, A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -157,7 +134,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             @assert Jac != 0.0
-            n = self.getnormal!(n, loc, J);
+            n = updatenormal!(surfacenormal, loc, J, self.integdomain.fes.label[i]);
             ffactor = (Jac*w[j])
             Ge = Ge + (ffactor*n)*transposedNs[j]
         end # Loop over quadrature points
@@ -169,7 +146,8 @@ end
 
 function pressure2resultantforce(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number}
     assembler  =  SysmatAssemblerSparse();
-    return pressure2resultantforce(self, assembler, geom, P, Force)
+    sdim =  ndofs(geom);   
+    return pressure2resultantforce(self, assembler, geom, P, Force, SurfaceNormal(sdim))
 end
 
 """
@@ -189,7 +167,7 @@ to the CG.
 - `P` = acoustic (perturbation) pressure field
 - `Torque` = field for the torque resultant
 """
-function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number,  A<:AbstractSysmatAssembler}
+function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec, surfacenormal::SurfaceNormal) where {T<:Number,  A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
     nfes = count(fes); # number of finite elements in the set
@@ -216,7 +194,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-            n = self.getnormal!(n, loc, J);
+            n = updatenormal!(surfacenormal, loc, J, self.integdomain.fes.label[i]);
             ffactor = (Jac*w[j])
             Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transposedNs[j]
         end # Loop over quadrature points
@@ -228,7 +206,8 @@ end
 
 function pressure2resultanttorque(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number}
     assembler  =  SysmatAssemblerSparse();
-    return pressure2resultanttorque(self, assembler, geom, P, Torque, CG)
+    sdim =  ndofs(geom);   
+    return pressure2resultanttorque(self, assembler, geom, P, Torque, CG, SurfaceNormal(sdim))
 end
 
 """
@@ -254,7 +233,7 @@ displacement (or velocity, or acceleration) along the surface.
     given the same numbers as the serial numbers of the finite elements in
     the set.
 """
-function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}) where {A<:AbstractSysmatAssembler, T}
+function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}, surfacenormal::SurfaceNormal) where {A<:AbstractSysmatAssembler, T}
     fes = self.integdomain.fes
     # Constants
     nne =  nodesperelem(fes); # number of nodes per element
@@ -277,7 +256,7 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-            n = self.getnormal!(n, loc, J);
+            n = updatenormal!(surfacenormal, loc, J, self.integdomain.fes.label[i]);
             Ge = Ge + (Jac*w[j])*reshape(reshape(n, sdim, 1)*transposedNs[j], size(Ge, 1), size(Ge, 2))
         end # Loop over quadrature points
         coldofnums[1] = i
@@ -289,7 +268,8 @@ end
 
 function acousticcouplingpanels(self::FEMMAcoustSurf, geom::NodalField, u::NodalField{T}) where {T}
     assembler = SysmatAssemblerSparse(); # The matrix is not symmetric
-    return acousticcouplingpanels(self, assembler, geom, u)
+    sdim =  ndofs(geom);   
+    return acousticcouplingpanels(self, assembler, geom, u, SurfaceNormal(sdim))
 end
 
 end
