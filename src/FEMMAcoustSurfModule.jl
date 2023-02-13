@@ -150,6 +150,11 @@ function pressure2resultantforce(self::FEMMAcoustSurf, geom::NodalField, P::Noda
     return pressure2resultantforce(self, assembler, geom, P, Force, SurfaceNormal(sdim))
 end
 
+function pressure2resultantforce(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Force::GeneralField, surfacenormal::SurfaceNormal) where {T<:Number}
+    assembler  =  SysmatAssemblerSparse();
+    return pressure2resultantforce(self, assembler, geom, P, Force, surfacenormal)
+end
+
 """
     pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A,
       geom::NodalField,
@@ -208,6 +213,11 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, geom::NodalField, P::Nod
     assembler  =  SysmatAssemblerSparse();
     sdim =  ndofs(geom);   
     return pressure2resultanttorque(self, assembler, geom, P, Torque, CG, SurfaceNormal(sdim))
+end
+
+function pressure2resultanttorque(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec, surfacenormal::SurfaceNormal) where {T<:Number}
+    assembler  =  SysmatAssemblerSparse();
+    return pressure2resultanttorque(self, assembler, geom, P, Torque, CG, surfacenormal)
 end
 
 """
@@ -270,6 +280,11 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, geom::NodalField, u::Nodal
     assembler = SysmatAssemblerSparse(); # The matrix is not symmetric
     sdim =  ndofs(geom);   
     return acousticcouplingpanels(self, assembler, geom, u, SurfaceNormal(sdim))
+end
+
+function acousticcouplingpanels(self::FEMMAcoustSurf, geom::NodalField, u::NodalField{T}, surfacenormal::SurfaceNormal) where {T}
+    assembler = SysmatAssemblerSparse(); # The matrix is not symmetric
+    return acousticcouplingpanels(self, assembler, geom, u, surfacenormal)
 end
 
 end
