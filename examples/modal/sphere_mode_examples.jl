@@ -35,7 +35,7 @@ function sphere_h8()
     c  = 340.0*phun("m/s");# sound speed
     bulk =  c^2*rho;
     R = 1000.0*phun("mm");# radius of the piston
-    nPerradius=30;# number of elements along the radius of the scatterer
+    nPerradius=10;# number of elements along the radius of the scatterer
     tolerance = R/nPerradius/100
     neigvs = 20
     
@@ -59,22 +59,21 @@ function sphere_h8()
     fens, fes  =  H8spheren(R, nPerradius);
     fens1, fes1 = mirrormesh(fens, fes, [-1.0, 0.0, 0.0], [0.0, 0.0, 0.0]; renumb =  c ->  c[[1, 4, 3, 2, 5, 8, 7, 6]])
     fens, newfes1, fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
-    fes = cat(newfes1,fes2)
+    fes = cat(newfes1, fes2)
     fens1, fes1 = mirrormesh(fens, fes, [0.0, -1.0, 0.0], [0.0, 0.0, 0.0]; renumb =  c ->  c[[1, 4, 3, 2, 5, 8, 7, 6]])
     fens, newfes1, fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
-    fes = cat(newfes1,fes2)
+    fes = cat(newfes1, fes2)
     fens1, fes1 = mirrormesh(fens, fes, [0.0, 0.0, -1.0], [0.0, 0.0, 0.0]; renumb =  c ->  c[[1, 4, 3, 2, 5, 8, 7, 6]])
     fens, newfes1, fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
-    fes = cat(newfes1,fes2)
+    fes = cat(newfes1, fes2)
     
     geom = NodalField(fens.xyz)
     P = NodalField(zeros(size(fens.xyz,1),1))
-    bfes = meshboundary(fes)
+    bfes = meshboundary(fe2s)
     setebc!(P, connectednodes(bfes))
     numberdofs!(P)
     
-    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)),
-    MatAcoustFluid(bulk,rho))
+    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), MatAcoustFluid(bulk,rho))
     
     S = acousticstiffness(femm, geom, P);
     C = acousticmass(femm, geom, P);
@@ -98,10 +97,66 @@ function sphere_h8()
     
 end # sphere_h8
 
+function sphere_t4()
+    rho = 1000*phun("kg/m^3");# mass density
+    c  = 1500.0*phun("m/s");# sound speed
+    bulk =  c^2*rho;
+    R = 500.0*phun("mm");# radius of the piston
+    neigvs = 200
+    
+    println("""
+    
+    Sphere with Dirichlet boundary conditions: model analysis.
+    Sphere of radius $(R), in water.
+    Tetrahedral T4 mesh.
+    Exact fundamental frequency: $(c/2/R)
+
+    """)
+    
+    # Hexahedral mesh
+    mesh = import_ABAQUS(joinpath(@__DIR__, "sphere-0_015.inp"))
+    fens = mesh["fens"]
+    fes = mesh["fesets"][1]
+    
+    geom = NodalField(fens.xyz)
+    P = NodalField(zeros(size(fens.xyz,1),1))
+    bfes = meshboundary(fes)
+    setebc!(P, connectednodes(bfes))
+    numberdofs!(P)
+    
+    femm = FEMMAcoust(IntegDomain(fes, TetRule(1)),
+    MatAcoustFluid(bulk,rho))
+    
+    S = acousticstiffness(femm, geom, P);
+    C = acousticmass(femm, geom, P);
+    
+    d, v, nconv = eigs(C, S; nev=neigvs, which=:SM, explicittransform=:none)
+    v = real.(v)
+    fs=real(sqrt.(complex(d)))./(2*pi)
+    println("Frequencies: $fs [Hz]")
+    ks = (2*pi).*fs./c./phun("m")
+    println("Wavenumbers: $(ks) [m]")
+    
+    File =  "sphere_t4.vtk"
+    scalarllist = Any[]
+    for n   in  1:15
+        scattersysvec!(P, v[:, n])
+        push!(scalarllist, ("Pressure_mode_$n", deepcopy(P.values)));
+    end
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.T4; scalars=scalarllist)
+    @async run(`"paraview.exe" $File`)
+    
+    true
+    
+end # sphere_h8
+
 function allrun()
     println("#####################################################") 
     println("# sphere_h8 ")
     sphere_h8()
+    println("#####################################################") 
+    println("# sphere_t4 ")
+    @time sphere_t4()
 end # function allrun
 
 @info "All examples may be executed with "
