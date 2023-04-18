@@ -83,14 +83,14 @@ function steadystate(modeldata::FDataDict)
 
     # Apply the essential boundary conditions on the acoustic pressure field
     essential_bcs = get(modeldata, "essential_bcs", nothing);
-    if (essential_bcs != nothing)
-        for j = 1:length(essential_bcs)
+    if (essential_bcs !== nothing)
+        for j in eachindex(essential_bcs)
             ess = essential_bcs[j]
             dcheck!(ess, essential_bcs_recognized_keys)
             fenids = get(()->error("Must get node list!"), ess, "node_list");
             pressure = get(ess, "pressure", nothing);
             Pfixed = zeros(FCplxFlt,length(fenids)); # default is zero pressure
-            if (pressure != nothing)
+            if (pressure !== nothing)
                 if (typeof(pressure) <: Function) # pressure supplied through function
                     for k = 1:length(fenids)
                         Pfixed[k] = pressure(geom.values[fenids[k],:])[1];
@@ -116,7 +116,7 @@ function steadystate(modeldata::FDataDict)
     S=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
     D=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
     regions = get(()->error("Must get regions!"), modeldata, "regions")
-    for i = 1:length(regions)
+    for i in eachindex(regions)
         region = regions[i]
         dcheck!(region, regions_recognized_keys)
         femm = get(()->error("Must get femm for the region!"), region, "femm");

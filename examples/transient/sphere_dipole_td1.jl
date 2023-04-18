@@ -7,7 +7,7 @@ pressure behind. Time-dependent simulation.
 rho = 1.21*phun("kg/m^3");# mass density
 c  = 343.0*phun("m/s");# sound speed
 bulk =  c^2*rho;
-a_amplitude=1.*phun("mm/s^2");# amplitude of the  acceleration of the sphere
+a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
 # omega = 2000*phun("rev/s");      # frequency of the incident wave
 R = 50.0*phun("mm"); # radius of the interior sphere
 Ro = 8*R # radius of the external sphere
