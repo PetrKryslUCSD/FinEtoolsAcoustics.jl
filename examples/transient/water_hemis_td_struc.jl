@@ -3,11 +3,11 @@ using SparseArrays
 
 println("Rigid movable hemisphere in  water. Time-dependent simulation.
 ")
-rho = 1000.*phun("kg/m^3");# mass density of water
+rho = 1000.0*phun("kg/m^3");# mass density of water
 c  = 1.4491e+3*phun("m/s");# sound speed in water
 bulk =  c^2*rho;
-rhos = 2500.*phun("kg/m^3");# mass density of the solid sphere
-a_amplitude=1.*phun("mm/s^2");# amplitude of the  acceleration of the sphere
+rhos = 2500.0*phun("kg/m^3");# mass density of the solid sphere
+a_amplitude=1.0*phun("mm/s^2");# amplitude of the  acceleration of the sphere
 R = 5.0*phun("mm"); # radius of the interior sphere
 Ro = 3*R # radius of the external sphere
 P_amplitude = 1000*phun("Pa"); # pressure amplitude
