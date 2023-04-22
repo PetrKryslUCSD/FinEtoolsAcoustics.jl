@@ -37,8 +37,8 @@ end
 
 Type for linear acoustics finite element modeling machine.
 """
-mutable struct FEMMAcoustNICE{S<:AbstractFESet, F<:Function, M} <: AbstractFEMM
-    integdomain::IntegDomain{S, F} # geometry data
+mutable struct FEMMAcoustNICE{ID<:IntegDomain, M} <: AbstractFEMM
+    integdomain::ID # geometry data
     material::M # material object
     associated::Bool
     nodalbasisfunctiongrad::Vector{_NodalBasisFunctionGradients}

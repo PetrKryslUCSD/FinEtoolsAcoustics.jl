@@ -28,8 +28,8 @@ import LinearAlgebra: norm, cross
 
 Class for linear acoustics finite element modeling machine.
 """
-mutable struct FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M} <: AbstractFEMM
-    integdomain::IntegDomain{S, F} # geometry data
+mutable struct FEMMAcoustSurf{ID<:IntegDomain, M} <: AbstractFEMM
+    integdomain::ID # geometry data
     material::M # material object
 end
 
