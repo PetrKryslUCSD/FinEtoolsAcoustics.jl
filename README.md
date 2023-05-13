@@ -13,6 +13,7 @@ using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
+- 05/12/2023: Updated for Julia 1.9.0. 
 - 04/22/2023: Updated for generic FinEtools.
 - 01/04/2023: Restructured examples. 
 - 08/23/2020: Added a separate tutorial package, [FinEtoolsAcousticsTutorials.jl](https://petrkryslucsd.github.io/FinEtoolsAcousticsTutorials.jl)).
