@@ -71,12 +71,12 @@ function acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::Nodal
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     Jac = 0.0;
-    afactor = 0.0;
+    afactor = T(0.0);
     startassembly!(assembler, size(elmat,1), size(elmat,2), count(fes),
         P.nfreedofs, P.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-        fill!(elmat, 0.0); # Initialize element matrix
+        fill!(elmat, T(0.0)); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
@@ -122,7 +122,7 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A, geom::NodalField
         gatherfixedvalues_asvec!(P, elvecfix, fes.conn[i]);# retrieve element coordinates
         if norm(elvecfix, Inf) !=  0.0     # Is the load nonzero?
             gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-            fill!(elmat, 0.0);
+            fill!(elmat, T(0.0));
             for j = 1:npts # Loop over quadrature points
                 locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
                 Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
@@ -172,7 +172,7 @@ function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pdd
         Pddot.nfreedofs, Pddot.nfreedofs);
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-        fill!(elmat, 0.0); # Initialize element matrix
+        fill!(elmat, T(0.0)); # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
@@ -222,7 +222,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::Nodal
         gatherfixedvalues_asvec!(Pddot, elvecfix, fes.conn[i]);# retrieve element coordinates
         if norm(elvecfix, Inf) !=  0.0  # Is the load nonzero?
             gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-            fill!(elmat, 0.0);
+            fill!(elmat, T(0.0));
             for j = 1:npts # Loop over quadrature points
                 locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
                 Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j]);
@@ -238,7 +238,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::Nodal
 end
 
 function nzebcloadsacousticstiffness(self::FEMMAcoust, geom::NodalField, Pddot::NodalField{T}) where {T<:Number}
-    assembler  =  SysvecAssembler(Pddot.values[1])#T(0.0)
+    assembler  =  SysvecAssembler(T(0.0))#
     return nzebcloadsacousticstiffness(self, assembler, geom, Pddot)
 end
 
