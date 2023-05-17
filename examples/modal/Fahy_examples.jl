@@ -37,7 +37,7 @@ function fahy_H20_example()
     S = acousticstiffness(femm, geom, P);
     C = acousticmass(femm, geom, P);
     
-    d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     v = real.(v)
     fs = real(sqrt.(complex(d)))/(2*pi)
@@ -89,7 +89,7 @@ function fahy_H27_example()
     S = acousticstiffness(femm, geom, P);
     C = acousticmass(femm, geom, P);
     
-    d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     v = real.(v)
     fs = real(sqrt.(complex(d)))/(2*pi)
@@ -137,7 +137,7 @@ function fahy_H8_example()
     S = acousticstiffness(femm, geom, P);
     C = acousticmass(femm, geom, P);
     
-    d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     v = real.(v)
@@ -188,7 +188,7 @@ function fahy_L2_example()
     S  =  acousticstiffness(femm, geom, P);
     C  =  acousticmass(femm, geom, P);
     
-    d,v,nev,nconv  = eigs(C+OmegaShift*S, S; nev = neigvs, which = :SM)
+    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
     d  =  d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     v = real.(v)

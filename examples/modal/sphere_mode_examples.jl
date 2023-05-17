@@ -154,7 +154,7 @@ function sphere_t4_in_water()
         @info "$(fq), multiplicity $(wn_table[i][2])"
     end
 
-    mesh = import_ABAQUS(joinpath(@__DIR__, "sphere-0_025.inp"))
+    mesh = import_ABAQUS(joinpath(@__DIR__, "sphere-0_015.inp"))
     fens = mesh["fens"]
     fes = mesh["fesets"][1]
 

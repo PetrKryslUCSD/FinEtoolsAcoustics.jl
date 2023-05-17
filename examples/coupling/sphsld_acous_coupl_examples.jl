@@ -1,8 +1,11 @@
 module sphsld_acous_coupl_examples
 using FinEtools
+using FinEtoolsAcoustics
+using FinEtoolsDeforLinear
 using FinEtools.MeshExportModule
-using UnicodePlots
-import Arpack: eigs
+using Arpack: eigs
+using SparseArrays
+using PlotlyLight
 
 function sphsld_acous_coupl_examples_H8()
     R = 0.5 * phun("m")
@@ -57,7 +60,17 @@ function sphsld_acous_coupl_examples_H8()
 
     femm = FEMMAcoustSurf(IntegDomain(bfes, TrapezoidalRule(2)), MatAcoustFluid(dummybulk, dummyrho))
     G = acousticcouplingpanels(femm, geom, u);
-    @show G
+    I, J, V = findnz(G)
+    p = PlotlyLight.Plot()
+    p(x = J, y = I, mode="markers")
+    # p.layout.title.text = "Matrix G"
+    p.layout.yaxis.title = "Row"
+    p.layout.yaxis.range = [size(G, 1)+1, 0]
+    p.layout.xaxis.title = "Column"
+    p.layout.xaxis.range = [0, size(G, 2)+1]
+    p.layout.xaxis.side = "top"
+    p.layout.margin.pad = 10
+    display(p)
 
     true
     
@@ -69,4 +82,8 @@ function allrun()
     sphsld_acous_coupl_examples_H8()
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module sphsld_acous_coupl_examples
+nothing
