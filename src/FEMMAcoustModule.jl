@@ -9,17 +9,17 @@ module FEMMAcoustModule
 import Base.Complex
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
-import ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
-import FinEtools.MatModule: massdensity
-import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
-import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asmat!
-import FinEtools.NodalFieldModule: NodalField
-import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysvecAssembler, makevector!
-import FinEtools.FEMMBaseModule: AbstractFEMM
-import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
-import LinearAlgebra: norm
+using FinEtools.FENodeSetModule: FENodeSet
+using FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
+using ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
+using FinEtools.MatModule: massdensity
+using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
+using FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asmat!, dofinfo
+using FinEtools.NodalFieldModule: NodalField
+using FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysvecAssembler, makevector!
+using FinEtools.FEMMBaseModule: AbstractFEMM
+using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
+using LinearAlgebra: norm
 
 """
     FEMMAcoust{S<:AbstractFESet, F<:Function, M} <: AbstractFEMM
@@ -72,8 +72,8 @@ function acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::Nodal
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     Jac = 0.0;
     afactor = T(0.0);
-    startassembly!(assembler, size(elmat,1), size(elmat,2), count(fes),
-        P.nfreedofs, P.nfreedofs);
+    startassembly!(assembler, prod(size(elmat)) * count(fes),
+        dofinfo(P), dofinfo(P));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(elmat, T(0.0)); # Initialize element matrix
@@ -116,7 +116,7 @@ function nzebcloadsacousticmass(self::FEMMAcoust, assembler::A, geom::NodalField
     ecoords, dofnums, loc, J, gradN, elmat, elvec, elvecfix = buffers(self, geom, P)
     # Precompute basis f. values + basis f. gradients wrt parametric coor
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
-    startassembly!(assembler, P.nfreedofs);
+    startassembly!(assembler, dofinfo(P));
     # Now loop over all finite elements in the set
     for i = 1:count(fes) # Loop over elements
         gatherfixedvalues_asvec!(P, elvecfix, fes.conn[i]);# retrieve element coordinates
@@ -168,8 +168,8 @@ function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pdd
     mass_density  =  massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     oc2 = 1.0/c^2;
-    startassembly!(assembler, size(elmat,1), size(elmat,2), count(fes),
-        Pddot.nfreedofs, Pddot.nfreedofs);
+    startassembly!(assembler, prod(size(elmat)) * count(fes),
+        dofinfo(Pddot), dofinfo(Pddot));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(elmat, T(0.0)); # Initialize element matrix
@@ -216,7 +216,7 @@ function nzebcloadsacousticstiffness(self::FEMMAcoust, assembler::A, geom::Nodal
     mass_density  =   massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
     oc2 = 1.0/c^2;
-    startassembly!(assembler, Pddot.nfreedofs);
+    startassembly!(assembler, dofinfo(Pddot));
     # Now loop over all finite elements in the set
     for i = 1:count(fes) # Loop over elements
         gatherfixedvalues_asvec!(Pddot, elvecfix, fes.conn[i]);# retrieve element coordinates

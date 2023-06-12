@@ -6,7 +6,7 @@ using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using LinearAlgebra
 using Test
 
-function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time = 0.0)
     fill!(normalout, 0.0)
     # We are assuming a surface element here!
     if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
@@ -74,28 +74,28 @@ function test()
 
     femm = FEMMAcoustSurf(IntegDomain(bfes, TrapezoidalRule(2)), MatAcoustFluid(dummybulk, dummyrho))
     G = acousticcouplingpanels(femm, geom, u);
-    @test abs(G[25 ,   1]  -  0.03125) / abs(0.03125) < 10e-4
-    @test abs(G[31 ,   3]  -  0.0255155) / abs(0.0255155) < 10e-4
-    @test abs(G[58 ,  13]  -  -0.03125) / abs(-0.03125) < 10e-4
-    @test abs(G[91 ,  19]  -  -0.00810978) / abs(-0.00810978) < 10e-4
-    @test abs(G[118,  22]  -  0.0105689) / abs(0.0105689) < 10e-4
-    @test abs(G[159,  24]  -  -0.019781) / abs(-0.019781) < 10e-4
+    @test abs(G.ff[25 ,   1]  -  0.03125) / abs(0.03125) < 10e-4
+    @test abs(G.ff[31 ,   3]  -  0.0255155) / abs(0.0255155) < 10e-4
+    @test abs(G.ff[58 ,  13]  -  -0.03125) / abs(-0.03125) < 10e-4
+    @test abs(G.ff[91 ,  19]  -  -0.00810978) / abs(-0.00810978) < 10e-4
+    @test abs(G.ff[118,  22]  -  0.0105689) / abs(0.0105689) < 10e-4
+    @test abs(G.ff[159,  24]  -  -0.019781) / abs(-0.019781) < 10e-4
 
     G = acousticcouplingpanels(femm, geom, u, SurfaceNormal(3));
-    @test abs(G[25 ,   1]  -  0.03125) / abs(0.03125) < 10e-4
-    @test abs(G[31 ,   3]  -  0.0255155) / abs(0.0255155) < 10e-4
-    @test abs(G[58 ,  13]  -  -0.03125) / abs(-0.03125) < 10e-4
-    @test abs(G[91 ,  19]  -  -0.00810978) / abs(-0.00810978) < 10e-4
-    @test abs(G[118,  22]  -  0.0105689) / abs(0.0105689) < 10e-4
-    @test abs(G[159,  24]  -  -0.019781) / abs(-0.019781) < 10e-4
+    @test abs(G.ff[25 ,   1]  -  0.03125) / abs(0.03125) < 10e-4
+    @test abs(G.ff[31 ,   3]  -  0.0255155) / abs(0.0255155) < 10e-4
+    @test abs(G.ff[58 ,  13]  -  -0.03125) / abs(-0.03125) < 10e-4
+    @test abs(G.ff[91 ,  19]  -  -0.00810978) / abs(-0.00810978) < 10e-4
+    @test abs(G.ff[118,  22]  -  0.0105689) / abs(0.0105689) < 10e-4
+    @test abs(G.ff[159,  24]  -  -0.019781) / abs(-0.019781) < 10e-4
 
     G = acousticcouplingpanels(femm, geom, u, SurfaceNormal(3, __computenormal!));
-    @test abs(G[25 ,   1]  -  0.03125) / abs(0.03125) < 10e-4
-    @test abs(G[31 ,   3]  -  0.0255155) / abs(0.0255155) < 10e-4
-    @test abs(G[58 ,  13]  -  -0.03125) / abs(-0.03125) < 10e-4
-    @test abs(G[91 ,  19]  -  -0.00810978) / abs(-0.00810978) < 10e-4
-    @test abs(G[118,  22]  -  0.0105689) / abs(0.0105689) < 10e-4
-    @test abs(G[159,  24]  -  -0.019781) / abs(-0.019781) < 10e-4
+    @test abs(G.ff[25 ,   1]  -  0.03125) / abs(0.03125) < 10e-4
+    @test abs(G.ff[31 ,   3]  -  0.0255155) / abs(0.0255155) < 10e-4
+    @test abs(G.ff[58 ,  13]  -  -0.03125) / abs(-0.03125) < 10e-4
+    @test abs(G.ff[91 ,  19]  -  -0.00810978) / abs(-0.00810978) < 10e-4
+    @test abs(G.ff[118,  22]  -  0.0105689) / abs(0.0105689) < 10e-4
+    @test abs(G.ff[159,  24]  -  -0.019781) / abs(-0.019781) < 10e-4
 
 
 

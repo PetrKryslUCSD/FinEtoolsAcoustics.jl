@@ -9,19 +9,19 @@ module FEMMAcoustSurfModule
 import Base.Complex
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
-import ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
-import FinEtools.MatModule: massdensity
-import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
-import FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat!
-import FinEtools.NodalFieldModule: NodalField
-import FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
-import FinEtools.GeneralFieldModule: GeneralField
-import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
-import FinEtools.FEMMBaseModule: AbstractFEMM
-import FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
-import LinearAlgebra: norm, cross
+using FinEtools.FENodeSetModule: FENodeSet
+using FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
+using ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
+using FinEtools.MatModule: massdensity
+using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
+using FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat!, dofinfo
+using FinEtools.NodalFieldModule: NodalField
+using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
+using FinEtools.GeneralFieldModule: GeneralField
+using FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
+using FinEtools.FEMMBaseModule: AbstractFEMM
+using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
+using LinearAlgebra: norm, cross
 
 """
     FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M, NF<:Function} <: AbstractFEMM
@@ -67,7 +67,7 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot:
     dofnums = fill(zero(FInt), Dedim); # degree of freedom array -- used as a buffer
     loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
-    startassembly!(assembler, Dedim, Dedim, nfes, Pdot.nfreedofs, Pdot.nfreedofs);
+    startassembly!(assembler, Dedim*Dedim*nfes, dofinfo(Pdot), dofinfo(Pdot));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(De, 0.0); # Initialize element matrix
@@ -126,7 +126,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
     n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     gatherdofnums!(Force, rowdofnums, [1 2 3]);# retrieve degrees of freedom
-    startassembly!(assembler, 3, edim, count(fes), 3, P.nfreedofs);
+    startassembly!(assembler, 3*edim*count(fes), (3, 3), dofinfo(P));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
@@ -192,7 +192,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     gatherdofnums!(Torque, rowdofnums, [1 2 3]);# retrieve degrees of freedom
-    startassembly!(assembler, 3, edim, count(fes), 3, P.nfreedofs);
+    startassembly!(assembler, 3*edim*count(fes), (3, 3), dofinfo(P));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
@@ -259,7 +259,7 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
     n = fill(zero(FFlt), sdim) # normal vector -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     Ge = fill(zero(FFlt), sdim*nne, 1); # Element matrix -- used as a buffer
-    startassembly!(assembler, size(Ge, 1), size(Ge, 2), count(fes), u.nfreedofs, count(fes));
+    startassembly!(assembler, prod(size(Ge)) * count(fes), dofinfo(u), (count(fes), count(fes)))
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix

@@ -6,15 +6,15 @@ Module for linear acoustics algorithms.
 module AlgoAcoustModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.AlgoBaseModule: dcheck!
-import FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
-import FinEtools.NodalFieldModule: NodalField, nnodes
-import FinEtools.FEMMBaseModule: associategeometry!, distribloads
-import ..FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness
-import ..FEMMAcoustSurfModule: acousticABC
-import FinEtools.ForceIntensityModule: ForceIntensity
-import SparseArrays: spzeros
-import LinearAlgebra: norm, lu, cross
+using FinEtools.AlgoBaseModule: dcheck!
+using FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!, nfreedofs
+using FinEtools.NodalFieldModule: NodalField, nnodes
+using FinEtools.FEMMBaseModule: associategeometry!, distribloads
+using ..FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness
+using ..FEMMAcoustSurfModule: acousticABC
+using FinEtools.ForceIntensityModule: ForceIntensity
+using SparseArrays: spzeros
+using LinearAlgebra: norm, lu, cross
 
 """
     steadystate(modeldata::FDataDict)
@@ -108,26 +108,26 @@ function steadystate(modeldata::FDataDict)
     numberdofs!(P)           #,Renumbering_options); # NOT DONE <<<<<<<<<<<<<<<<<
 
     # Initialize the acoustic load vector
-    F = zeros(FCplxFlt, P.nfreedofs);
+    F = zeros(FCplxFlt, nfreedofs(P));
 
     # Construct the system acoustic mass and stiffness matrix
     # and the absorbing boundary condition (ABC) matrix
-    C=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
-    S=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
-    D=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
+    C = spzeros(nfreedofs(P),nfreedofs(P)); # (all zeros, for the moment)
+    S = spzeros(nfreedofs(P),nfreedofs(P)); # (all zeros, for the moment)
+    D = spzeros(nfreedofs(P),nfreedofs(P)); # (all zeros, for the moment)
     regions = get(()->error("Must get regions!"), modeldata, "regions")
     for i in eachindex(regions)
         region = regions[i]
         dcheck!(region, regions_recognized_keys)
         femm = get(()->error("Must get femm for the region!"), region, "femm");
         # Add up all the acoustic mass matrices for all the regions
-        C = C + acousticmass(femm, geom, P);
-        S = S + acousticstiffness(femm, geom, P);
+        C = C + acousticmass(femm, geom, P).ff;
+        S = S + acousticstiffness(femm, geom, P).ff;
         # Loads due to the essential boundary conditions on the pressure field
         essential_bcs = get(modeldata, "essential_bcs", nothing);
         if (essential_bcs != nothing)
-            F = F + nzebcloadsacousticmass(femm, geom, P);
-            F = F + nzebcloadsacousticstiffness(femm, geom, P);
+            F = F + nzebcloadsacousticmass(femm, geom, P).f;
+            F = F + nzebcloadsacousticstiffness(femm, geom, P).f;
         end
     end
 
@@ -138,7 +138,7 @@ function steadystate(modeldata::FDataDict)
             ABC = ABCs[j]
             dcheck!(ABC, ABCs_recognized_keys)
             femm = get(()->error("Must get femm for the ABC!"), ABC, "femm");
-            D = D + acousticABC(femm, geom, P);
+            D = D + acousticABC(femm, geom, P).ff;
         end
     end
 
@@ -151,16 +151,17 @@ function steadystate(modeldata::FDataDict)
             dcheck!(fluxbc, flux_bcs_recognized_keys)
             normal_flux = get(()->error("Must get normal flux value!"), fluxbc, "normal_flux");
             if (typeof(normal_flux) <: Function)
-                fi = ForceIntensity(FFlt, 1, normal_flux);
+                @show fi = ForceIntensity(FCplxFlt, 1, normal_flux);
             else
                 if typeof(normal_flux) <: AbstractArray
                 else
                     normal_flux = FCplxFlt[normal_flux]
                 end
+                @show normal_flux
                 fi = ForceIntensity(normal_flux);
             end
             femm = get(()->error("Must get femm for the flux BC!"), fluxbc, "femm");
-            F = F + distribloads(femm, geom, P, fi, 2);
+            F = F + distribloads(femm, geom, P, fi, 2).f;
         end
     end
 

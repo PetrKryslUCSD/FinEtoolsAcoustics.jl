@@ -155,8 +155,8 @@ function acousticmass(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::N
     @assert self.associated
     fes = self.integdomain.fes
     elmatsizeguess = 4*nodesperelem(fes)*ndofs(P)
-    startassembly!(assembler, elmatsizeguess, elmatsizeguess, nnodes(P), P.nfreedofs, P.nfreedofs);
-    for nix = 1:length(self.nodalbasisfunctiongrad)
+    startassembly!(assembler, elmatsizeguess^2 * nnodes(P), dofinfo(P), dofinfo(P));
+    for nix  in 1:length(self.nodalbasisfunctiongrad)
         gradN = self.nodalbasisfunctiongrad[nix].gradN
         patchconn = self.nodalbasisfunctiongrad[nix].patchconn
         Vpatch = self.nodalbasisfunctiongrad[nix].Vpatch

@@ -38,7 +38,7 @@ femm = FEMMAcoust(IntegDomain(fes, GaussRule(2, 2)),
 S = acousticstiffness(femm, geom, P);
 C = acousticmass(femm, geom, P);
 
-d,v,nev,nconv =eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+d,v,nev,nconv =eigs(C.ff+OmegaShift*S.ff, S.ff; nev=neigvs, which=:SM)
 d = d .- OmegaShift;
 fs=real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
@@ -103,7 +103,7 @@ femm = FEMMAcoust(IntegDomain(fes, GaussRule(1, 2)), MatAcoustFluid(bulk, rho))
 S  =  acousticstiffness(femm, geom, P);
 C  =  acousticmass(femm, geom, P);
 
-d,v,nev,nconv  = eigs(C+OmegaShift*S, S; nev = neigvs, which = :SM)
+d,v,nev,nconv  = eigs(C.ff+OmegaShift*S.ff, S.ff; nev = neigvs, which = :SM)
 d  =  d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
@@ -176,7 +176,7 @@ femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), MatAcoustFluid(bulk, rho))
 S = acousticstiffness(femm, geom, P);
 C = acousticmass(femm, geom, P);
 
-d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+d,v,nev,nconv = eigs(C.ff+OmegaShift*S.ff, S.ff; nev=neigvs, which=:SM)
 d = d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
@@ -237,7 +237,7 @@ femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
 S = acousticstiffness(femm, geom, P);
 C = acousticmass(femm, geom, P);
 
-d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+d,v,nev,nconv = eigs(C.ff+OmegaShift*S.ff, S.ff; nev=neigvs, which=:SM)
 d = d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
@@ -311,7 +311,7 @@ function test()
     fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
     F  =  distribloads(E0femm, geom, P, fi, 2);
 
-    p = (-omega^2*S +omega*1.0im*D + C)\F
+    p = (-omega^2*S.ff +omega*1.0im*D.ff + C.ff)\F.f
     scattersysvec!(P, p[:])
 
     # println("Pressure amplitude bounds: ")
@@ -438,10 +438,11 @@ abcfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, louter), GaussRule(2, 2)), m
 D  =  acousticABC(abcfemm, geom, P);
 
 # Inner sphere pressure loading
-function dipole(dpdn, xyz, J, label)
+function dipole(dpdn, xyz, J, label, time = 0.0)
     n = cross(J[:,1],J[:,2]);
     n = vec(n/norm(n));
     dpdn[1] = -rho*a_amplitude*n[1]
+    return dpdn
 end
 
 fi  =  ForceIntensity(FCplxFlt, 1, dipole);
@@ -449,9 +450,9 @@ fi  =  ForceIntensity(FCplxFlt, 1, dipole);
 dipfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, linner), GaussRule(2, 2)), material)
 F  = distribloads(dipfemm, geom, P, fi, 2);
 
-A = (1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)
+A = (1.0+0.0im)*(-omega^2*S.ff + omega*1.0im*D.ff + C.ff)
 K = lu(A) # We fake a complex matrix here
-p = K\F  #
+p = K\F.f  #
 
 scattersysvec!(P, p[:])
 
@@ -527,7 +528,7 @@ E0femm  =  FEMMBase(IntegDomain(subset(bfes,L0), TriRule(3)))
 fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
 F  =  distribloads(E0femm, geom, P, fi, 2);
 
-p = (-omega^2*S +omega*1.0im*D + C)\F
+p = (-omega^2*S.ff +omega*1.0im*D.ff + C.ff)\F.f
 scattersysvec!(P, p[:])
 
 # println("Pressure amplitude bounds: ")
@@ -695,11 +696,14 @@ function test()
   abcfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, louter), GaussRule(2, 2)), material)
   D  =  acousticABC(abcfemm, geom, P);
 
+
+
   # Inner sphere pressure loading
-  function dipole(dpdn, xyz, J, label, t)
+  function dipole!(dpdn::Vector{FCplxFlt}, xyz, J, label, time)
       n = cross(J[:,1],J[:,2]);
       n = vec(n/norm(n));
-      dpdn[1] = -rho*a_amplitude*sin(omega*t)*n[1]
+      dpdn[1] = -rho*a_amplitude*sin(omega*time)*n[1]
+      return dpdn
   end
 
   dipfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, linner), GaussRule(2, 2)), material)
@@ -711,22 +715,23 @@ function test()
   vP1 = fill!(similar(vP0), zero(eltype(vP0)))
   vQ0 = fill!(similar(vP0), zero(eltype(vP0)))
   vQ1 = fill!(similar(vP0), zero(eltype(vP0)))
-  t = 0.0;
+
   P1 = deepcopy(P0);
 
-  fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
+  t = 0.0
+  fi  =  ForceIntensity(FCplxFlt, 1, (out, XYZ, tangents, fe_label) -> dipole!(out, XYZ, tangents, fe_label, t));
   La0 = distribloads(dipfemm, geom, P1, fi, 2);
 
-  A = (2.0/dt)*S + D + (dt/2.)*C;
+  A = (2.0/dt)*S.ff + D.ff + (dt/2.)*C.ff;
 
   step =0;
-  while t <= tfinal
+  while t[] <= tfinal
     step = step  + 1;
-    # println("Time $t ($(step)/$(round(tfinal/dt)+1))")
-    t = t+dt;
-    fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
+    t = t + dt;
+    # println("Time $t (  $(step)/$(round(tfinal/dt)+1))")
+    fi  =  ForceIntensity(FCplxFlt, 1, (out, XYZ, tangents, fe_label) -> dipole!(out, XYZ, tangents, fe_label, t));
     La1 = distribloads(dipfemm, geom, P1, fi, 2);
-    vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-C*(2*vP0+(dt/2)*vQ0)+La0+La1);
+    vQ1 = A\((2/dt)*(S.ff*vQ0)-D.ff*vQ0-C.ff*(2*vP0+(dt/2)*vQ0)+La0.f+La1.f);
     vP1 = vP0 + (dt/2)*(vQ0+vQ1);
     vP0 = vP1;
     vQ0 = vQ1;
@@ -891,6 +896,7 @@ function test()
       n = vec(n/norm(n));
       arg = (-dot(vec(xyz),vec(wavevector))+omega*(t+tshift));
       dpdn[1] = P_amplitude*cos(arg)*(-dot(vec(n),vec(wavevector)));
+      return dpdn
   end
 
 
@@ -904,9 +910,9 @@ function test()
   GF = pressure2resultantforce(targetfemm, geom, P, ForceF)
   GT = pressure2resultanttorque(targetfemm, geom, P, TorqueF, CG)
 
-  H = transpose(GF)*(rho/mass)*GF + transpose(GT)*(sparse(rho*inv(Inertia)))*GT;
+  H = transpose(GF.ff)*(rho/mass)*GF.ff + transpose(GT.ff)*(sparse(rho*inv(Inertia)))*GT.ff;
 
-  Ctild = C + H;
+  Ctild = C.ff + H;
 
   # Solve
   P0 = deepcopy(P)
@@ -939,7 +945,7 @@ function test()
 
   pinc = deepcopy(P)
   pincdd = deepcopy(P)
-  pincv = fill(zero(FFlt), P.nfreedofs)
+  pincv = fill(zero(FFlt), nalldofs(P))
   pincddv = deepcopy(pincv)
   p1v = deepcopy(pincv)
   p1 = deepcopy(P)
@@ -954,12 +960,13 @@ function test()
   end
 
   pinc, pincdd = recalculate_incident!(t, pinc, pincdd)
-  L0 = -S*gathersysvec!(pincdd, pincddv) - Ctild*gathersysvec!(pinc, pincv);
-  fabcp(dpdn, xyz, J, label) = abcp(dpdn, xyz, J, label, t)
-  fi  =  ForceIntensity(FFlt, 1, fabcp);
+  gathersysvec!(pincdd, pincddv)
+  gathersysvec!(pinc, pincv);
+  L0 = -S.ff * pincddv[freedofs(pincdd)] - Ctild * pincv[freedofs(pincdd)];
+  fi  =  ForceIntensity(FFlt, 1, (dpdn, xyz, J, label) -> abcp(dpdn, xyz, J, label, t));
   La0 = distribloads(abcfemm, geom, P1, fi, 2);
 
-  A = lu((2.0/dt)*S + D + (dt/2.)*Ctild);
+  A = lu((2.0/dt)*S.ff + D.ff + (dt/2.)*Ctild);
 
   step = 1;
   while step <= nsteps
@@ -976,16 +983,18 @@ function test()
     step = step  + 1;
     t = t+dt;
     pinc, pincdd = recalculate_incident!(t, pinc, pincdd)
-    L1 = -S*gathersysvec!(pincdd, pincddv) - Ctild*gathersysvec!(pinc, pincv);
-    fi  =  ForceIntensity(FFlt, 1, fabcp);
+    gathersysvec!(pincdd, pincddv)
+    gathersysvec!(pinc, pincv);
+    L1 = -S.ff * pincddv[freedofs(pincdd)] - Ctild * pincv[freedofs(pincdd)];
+    fi  =  ForceIntensity(FFlt, 1, (dpdn, xyz, J, label) -> abcp(dpdn, xyz, J, label, t));
     La1 = distribloads(abcfemm, geom, P1, fi, 2);
-    vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-Ctild*(2*vP0+(dt/2)*vQ0)+L0+L1+La0+La1);
+    vQ1 = A\((2/dt)*(S.ff*vQ0)-D.ff*vQ0-Ctild*(2*vP0+(dt/2)*vQ0)+L0+L1+La0.f+La1.f);
     vP1 = vP0 + (dt/2)*(vQ0+vQ1);
     P1 = scattersysvec!(P1, vec(vP1));
     p1.values[:] = P1.values[:] + pinc.values[:]
     p1v = gathersysvec!(p1, p1v);
-    Fresultant = GF*p1v;
-    Tresultant = GT*p1v;
+    Fresultant = GF.ff*p1v;
+    Tresultant = GT.ff*p1v;
     # println("Fresultant = $Fresultant")
     tTa1 = Fresultant/mass; tAa1 = Inertia\Tresultant;
     # Update  the velocity and position of the rigid body
@@ -999,7 +1008,7 @@ function test()
     copyto!(vQ0, vQ1);
     P0 = deepcopy(P1);
     copyto!(L0, L1);
-    copyto!(La0, La1);
+    La0, La1 = La1, La0
     copyto!(tTa0, tTa1); copyto!(tAa0, tAa1)
     copyto!(tTv0, tTv1); copyto!(tAv0, tAv1)
     copyto!(tTu0, tTu1); copyto!(tAu0, tAu1)
@@ -1240,8 +1249,8 @@ function test()
     applyebc!(P);
     numberdofs!(P);
 
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    S  =  acousticstiffness(femm, geom, P).ff;
+    C  =  acousticmass(femm, geom, P).ff;
     D= (2.0/dt)*S +(dt/2.0)*C;
 
     P0 = deepcopy(P)
@@ -1250,15 +1259,15 @@ function test()
     Pdd1 = deepcopy(P)
     TMPF = deepcopy(P)
     P = nothing # we don't need this field anymore
-    vP0 = fill(zero(FFlt), P0.nfreedofs)
+    vP0 = fill(zero(FFlt), nfreedofs(P0))
     vP1 = deepcopy(vP0)
     vPd0 = deepcopy(vP0)
     vPd1 = deepcopy(vP0)
 
     t = 0.0
-    P0.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
-    Pdd0.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
-    vP0 = gathersysvec!(P0, vP0)
+    P0.values[piston_fenids,1] .= P_piston*sin(omega*t)
+    Pdd0.values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
+    vP0 = gathersysvec!(P0, vP0)[freedofs(P0)]
 
     nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
     Pnh = [P1.values[nh, 1][1]]
@@ -1267,12 +1276,12 @@ function test()
     while t <=tfinal
         step = step  +1;
         t=t+dt;
-        P1.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
-        Pdd1.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
-        TMPF.fixed_values = P0.fixed_values + P1.fixed_values
-        F = nzebcloadsacousticmass(femm, geom, TMPF);
-        TMPF.fixed_values = Pdd0.fixed_values + Pdd1.fixed_values
-        F = F + nzebcloadsacousticstiffness(femm, geom, TMPF);
+        P1.values[piston_fenids,1] .= P_piston*sin(omega*t)
+        Pdd1.values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
+        TMPF.values = P0.values + P1.values
+        F = nzebcloadsacousticmass(femm, geom, TMPF).f;
+        TMPF.values = Pdd0.values + Pdd1.values
+        F = F + nzebcloadsacousticstiffness(femm, geom, TMPF).f;
         # println("$(norm(F))")
         vPd1 = D\((2/dt)*(S*vPd0) - C*(2*vP0+(dt/2)*vPd0) + F);
         vP1 = vP0 + (dt/2)*(vPd0+vPd1);
@@ -1437,7 +1446,7 @@ abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)
 
 # Surface of the piston
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-          material),  "normal_flux"=> (forceout, XYZ, tangents, fe_label) -> forceout[1] = -rho*a_piston+0.0im);
+          material),  "normal_flux"=> (forceout, XYZ, tangents, fe_label) -> (forceout[1] = -rho*a_piston+0.0im; forceout));
 
 # Make model data
 modeldata =  FDataDict("fens"=>  fens,
