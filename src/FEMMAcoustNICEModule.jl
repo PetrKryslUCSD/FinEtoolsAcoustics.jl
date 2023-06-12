@@ -9,21 +9,21 @@ module FEMMAcoustNICEModule
 __precompile__(true)
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.FENodeSetModule: FENodeSet
-import FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT4, manifdim, nodesperelem, gradN!
-import FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
-import FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!
-import FinEtools.NodalFieldModule: NodalField, nnodes
-import FinEtools.FENodeToFEMapModule: FENodeToFEMap
+using FinEtools.FENodeSetModule: FENodeSet
+using FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT4, manifdim, nodesperelem, gradN!
+using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
+using FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!, dofinfo
+using FinEtools.NodalFieldModule: NodalField, nnodes
+using FinEtools.FENodeToFEMapModule: FENodeToFEMap
 import ..FEMMAcoustModule: acousticmass
-import FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
+using FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, complete_lt!, loc!, jac!, locjac!, adjugate3!
-import FinEtools.FEMMBaseModule: AbstractFEMM
+using FinEtools.FEMMBaseModule: AbstractFEMM
 import FinEtools.FEMMBaseModule: associategeometry!
-import FinEtools.MatModule: massdensity
-import LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals, det
-import LinearAlgebra: norm, qr, diag, dot, cond, I, cross
-import Statistics: mean
+using FinEtools.MatModule: massdensity
+using LinearAlgebra: mul!, Transpose, UpperTriangular, eigvals, det
+using LinearAlgebra: norm, qr, diag, dot, cond, I, cross
+using Statistics: mean
 
 
 mutable struct _NodalBasisFunctionGradients
