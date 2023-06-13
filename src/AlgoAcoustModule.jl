@@ -11,7 +11,7 @@ using FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysv
 using FinEtools.AssemblyModule: matrix_blocked, vector_blocked
 using FinEtools.NodalFieldModule: NodalField, nnodes
 using FinEtools.FEMMBaseModule: associategeometry!, distribloads
-using ..FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness
+using ..FEMMAcoustModule: acousticmass, acousticstiffness
 using ..FEMMAcoustSurfModule: acousticABC
 using FinEtools.ForceIntensityModule: ForceIntensity
 using SparseArrays: spzeros
@@ -109,7 +109,7 @@ function steadystate(modeldata::FDataDict)
     numberdofs!(P)           #,Renumbering_options); # NOT DONE <<<<<<<<<<<<<<<<<
 
     # Initialize the acoustic load vector
-    F = gathersysvec(P)
+    F = gathersysvec(P, :a)
 
     # Construct the system acoustic mass and stiffness matrix
     # and the absorbing boundary condition (ABC) matrix
