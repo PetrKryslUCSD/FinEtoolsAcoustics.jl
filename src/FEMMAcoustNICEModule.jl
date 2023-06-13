@@ -12,7 +12,7 @@ using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, F
 using FinEtools.FENodeSetModule: FENodeSet
 using FinEtools.FESetModule: AbstractFESet, FESetH8, FESetT4, manifdim, nodesperelem, gradN!
 using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
-using FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!, dofinfo
+using FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!, nalldofs
 using FinEtools.NodalFieldModule: NodalField, nnodes
 using FinEtools.FENodeToFEMapModule: FENodeToFEMap
 import ..FEMMAcoustModule: acousticmass
@@ -155,7 +155,7 @@ function acousticmass(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::N
     @assert self.associated
     fes = self.integdomain.fes
     elmatsizeguess = 4*nodesperelem(fes)*ndofs(P)
-    startassembly!(assembler, elmatsizeguess^2 * nnodes(P), dofinfo(P), dofinfo(P));
+    startassembly!(assembler, elmatsizeguess^2 * nnodes(P), nalldofs(P), nalldofs(P));
     for nix  in 1:length(self.nodalbasisfunctiongrad)
         gradN = self.nodalbasisfunctiongrad[nix].gradN
         patchconn = self.nodalbasisfunctiongrad[nix].patchconn

@@ -14,7 +14,7 @@ using FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
 using ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
 using FinEtools.MatModule: massdensity
 using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobiansurface
-using FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat!, dofinfo
+using FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat!, nalldofs
 using FinEtools.NodalFieldModule: NodalField
 using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using FinEtools.GeneralFieldModule: GeneralField
@@ -67,7 +67,7 @@ function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot:
     dofnums = fill(zero(FInt), Dedim); # degree of freedom array -- used as a buffer
     loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
-    startassembly!(assembler, Dedim*Dedim*nfes, dofinfo(Pdot), dofinfo(Pdot));
+    startassembly!(assembler, Dedim*Dedim*nfes, nalldofs(Pdot), nalldofs(Pdot));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(De, 0.0); # Initialize element matrix
@@ -126,7 +126,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
     n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     gatherdofnums!(Force, rowdofnums, [1 2 3]);# retrieve degrees of freedom
-    startassembly!(assembler, 3*edim*count(fes), (3, 3), dofinfo(P));
+    startassembly!(assembler, 3*edim*count(fes), 3, nalldofs(P));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
@@ -192,7 +192,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     gatherdofnums!(Torque, rowdofnums, [1 2 3]);# retrieve degrees of freedom
-    startassembly!(assembler, 3*edim*count(fes), (3, 3), dofinfo(P));
+    startassembly!(assembler, 3*edim*count(fes), 3, nalldofs(P));
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
@@ -259,7 +259,7 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
     n = fill(zero(FFlt), sdim) # normal vector -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
     Ge = fill(zero(FFlt), sdim*nne, 1); # Element matrix -- used as a buffer
-    startassembly!(assembler, prod(size(Ge)) * count(fes), dofinfo(u), (count(fes), count(fes)))
+    startassembly!(assembler, prod(size(Ge)) * count(fes), nalldofs(u), count(fes))
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
         fill!(Ge, 0.0); # Initialize element matrix
