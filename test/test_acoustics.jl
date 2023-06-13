@@ -1263,10 +1263,15 @@ function test()
     numberdofs!(P);
 
     S  =  acousticstiffness(femm, geom, P);
-    S = matrix_blocked(S, nfreedofs(P), nfreedofs(P))[:ff]
     C  =  acousticmass(femm, geom, P);
-    C = matrix_blocked(C, nfreedofs(P), nfreedofs(P))[:ff]
-    D= (2.0/dt)*S +(dt/2.0)*C;
+
+    S_ff, S_fd = matrix_blocked(S, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
+    C_ff, C_fd = matrix_blocked(C, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
+
+    F = zeros(ComplexF64, nalldofs(P))
+    F_f, F_d = vector_blocked(F, nfreedofs(P))[(:f, :d)]
+
+    A = (2.0/dt)*S_ff +(dt/2.0)*C_ff;
 
     P0 = deepcopy(P)
     Pdd0 = deepcopy(P)
@@ -1294,12 +1299,14 @@ function test()
         P1.values[piston_fenids,1] .= P_piston*sin(omega*t)
         Pdd1.values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
         TMPF.values = P0.values + P1.values
-        F = nzebcloadsacousticmass(femm, geom, TMPF);
+        gathersysvec!(TMPF, F_d, :d)
+        @show size(F_f), size(C_fd), size(F_d)
+        F_f .= -C_fd * F_d
         TMPF.values = Pdd0.values + Pdd1.values
-        F = F + nzebcloadsacousticstiffness(femm, geom, TMPF);
-        F = vector_blocked(F, nfreedofs(P0))[:f]
+        gathersysvec!(TMPF, F_d, :d)
+        F_f = F_f - S_fd * F_d
         # println("$(norm(F))")
-        vPd1 = D\((2/dt)*(S*vPd0) - C*(2*vP0+(dt/2)*vPd0) + F);
+        vPd1 = A \((2/dt)*(S_ff*vPd0) - C_ff*(2*vP0+(dt/2)*vPd0) + F_f);
         vP1 = vP0 + (dt/2)*(vPd0+vPd1);
         scattersysvec!(P1, vP1); # store current pressure
         # Swap variables for the next step
