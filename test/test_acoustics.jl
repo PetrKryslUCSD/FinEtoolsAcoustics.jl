@@ -1300,7 +1300,6 @@ function test()
         Pdd1.values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
         TMPF.values = P0.values + P1.values
         gathersysvec!(TMPF, F_d, :d)
-        @show size(F_f), size(C_fd), size(F_d)
         F_f .= -C_fd * F_d
         TMPF.values = Pdd0.values + Pdd1.values
         gathersysvec!(TMPF, F_d, :d)
