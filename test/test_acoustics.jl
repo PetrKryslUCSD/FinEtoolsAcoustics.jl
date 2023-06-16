@@ -68,6 +68,7 @@ mmrrigid.test()
 module fahyL2example
 
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
 import Arpack: eigs
@@ -263,6 +264,7 @@ mmfahyH27example.test()
 
 module mstraight_duct_H8_1
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
 function test()
@@ -355,6 +357,7 @@ mstraight_duct_H8_1.test()
 
 module mmsphere_dipole_1
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
 import LinearAlgebra: norm, lu, cross
@@ -483,6 +486,7 @@ mmsphere_dipole_1.test()
 
 module mstraight_duct_T10_examplem
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
 import Statistics: mean
@@ -636,6 +640,7 @@ mmiintegrationmm.test()
 
 module mmtransientsphere
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
 import LinearAlgebra: norm, cross
@@ -667,7 +672,6 @@ function test()
   renumb =  r(c) = c[[1, 4, 3, 2, 5, 8, 7, 6]]);
   fens,newfes1,fes2 =  mergemeshes(fens1, fes1, fens, fes, tolerance)
   fes = cat(newfes1,fes2)
-
 
   # Derive the finite element sets for the boundary
   bfes  =  meshboundary(fes)
@@ -706,8 +710,6 @@ function test()
 
   abcfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, louter), GaussRule(2, 2)), material)
   D  =  acousticABC(abcfemm, geom, P);
-
-
 
   # Inner sphere pressure loading
   function dipole!(dpdn::Vector{FCplxFlt}, xyz, J, label, time)
@@ -768,6 +770,7 @@ mmtransientsphere.test()
 
 module mmhhemispheremm
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
 using SparseArrays
@@ -1190,6 +1193,7 @@ mmbbaffledmm.test()
 
 module mmtransientmm1mm
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
 import LinearAlgebra: norm
