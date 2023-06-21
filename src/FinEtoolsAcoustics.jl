@@ -19,10 +19,9 @@ using FinEtoolsAcoustics.MatAcoustFluidModule: MatAcoustFluid
 # Exported: type of acoustic fluid material
 export MatAcoustFluid
 
-using FinEtoolsAcoustics.FEMMAcoustModule: FEMMAcoust, acousticmass, nzebcloadsacousticmass, acousticstiffness, nzebcloadsacousticstiffness
+using FinEtoolsAcoustics.FEMMAcoustModule: FEMMAcoust, acousticmass,  acousticstiffness
 # Exported: type for linear acoustics  and discretization methods
-export FEMMAcoust, acousticmass, nzebcloadsacousticmass,
-    acousticstiffness, nzebcloadsacousticstiffness
+export FEMMAcoust, acousticmass, acousticstiffness
 
 using FinEtoolsAcoustics.FEMMAcoustNICEModule: FEMMAcoustNICE, acousticmass
 # Exported: type for linear acoustics  and discretization methods

@@ -6,15 +6,15 @@ Module for linear acoustics algorithms.
 module AlgoAcoustModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-import FinEtools.AlgoBaseModule: dcheck!
-import FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!
-import FinEtools.NodalFieldModule: NodalField, nnodes
-import FinEtools.FEMMBaseModule: associategeometry!, distribloads
-import ..FEMMAcoustModule: acousticmass, acousticstiffness, nzebcloadsacousticmass, nzebcloadsacousticstiffness
-import ..FEMMAcoustSurfModule: acousticABC
-import FinEtools.ForceIntensityModule: ForceIntensity
-import SparseArrays: spzeros
-import LinearAlgebra: norm, lu, cross
+using FinEtools.AlgoBaseModule: dcheck!, solve!, matrix_blocked, vector_blocked
+using FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!, nfreedofs, nalldofs, gathersysvec
+using FinEtools.NodalFieldModule: NodalField, nnodes
+using FinEtools.FEMMBaseModule: associategeometry!, distribloads
+using ..FEMMAcoustModule: acousticmass, acousticstiffness
+using ..FEMMAcoustSurfModule: acousticABC
+using FinEtools.ForceIntensityModule: ForceIntensity
+using SparseArrays: spzeros
+using LinearAlgebra: norm, lu, cross
 
 """
     steadystate(modeldata::FDataDict)
@@ -108,13 +108,13 @@ function steadystate(modeldata::FDataDict)
     numberdofs!(P)           #,Renumbering_options); # NOT DONE <<<<<<<<<<<<<<<<<
 
     # Initialize the acoustic load vector
-    F = zeros(FCplxFlt, P.nfreedofs);
+    F = gathersysvec(P, :a)
 
     # Construct the system acoustic mass and stiffness matrix
     # and the absorbing boundary condition (ABC) matrix
-    C=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
-    S=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
-    D=  spzeros(P.nfreedofs,P.nfreedofs); # (all zeros, for the moment)
+    C = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
+    S = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
+    D = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
     regions = get(()->error("Must get regions!"), modeldata, "regions")
     for i in eachindex(regions)
         region = regions[i]
@@ -122,13 +122,7 @@ function steadystate(modeldata::FDataDict)
         femm = get(()->error("Must get femm for the region!"), region, "femm");
         # Add up all the acoustic mass matrices for all the regions
         C = C + acousticmass(femm, geom, P);
-        S = S + acousticstiffness(femm, geom, P);
-        # Loads due to the essential boundary conditions on the pressure field
-        essential_bcs = get(modeldata, "essential_bcs", nothing);
-        if (essential_bcs != nothing)
-            F = F + nzebcloadsacousticmass(femm, geom, P);
-            F = F + nzebcloadsacousticstiffness(femm, geom, P);
-        end
+        S  = S + acousticstiffness(femm, geom, P);
     end
 
     # Compute the ABC matrices
@@ -151,7 +145,7 @@ function steadystate(modeldata::FDataDict)
             dcheck!(fluxbc, flux_bcs_recognized_keys)
             normal_flux = get(()->error("Must get normal flux value!"), fluxbc, "normal_flux");
             if (typeof(normal_flux) <: Function)
-                fi = ForceIntensity(FFlt, 1, normal_flux);
+                fi = ForceIntensity(FCplxFlt, 1, normal_flux);
             else
                 if typeof(normal_flux) <: AbstractArray
                 else
@@ -164,9 +158,21 @@ function steadystate(modeldata::FDataDict)
         end
     end
 
+    # Separate the blocks of the system matrices
+    S_ff, S_fd = matrix_blocked(S, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
+    C_ff, C_fd = matrix_blocked(C, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
+    D_ff, D_fd = matrix_blocked(D, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
+    F_f, F_d = vector_blocked(F, nfreedofs(P))[(:f, :d)]
+
+    # Loads due to the essential boundary conditions on the pressure field
+    essential_bcs = get(modeldata, "essential_bcs", nothing);
+    if (essential_bcs != nothing)
+        F_f = F_f - C_fd * F_d - S_fd * F_d
+    end
+
     # Solve for the pressures
-    K = lu((-omega^2*S +omega*1.0im*D + C));
-    vP = K\F;
+    K = lu((-omega^2*S_ff +omega*1.0im*D_ff + C_ff));
+    vP = K\F_f;
     scattersysvec!(P, vP[:])
 
     # Update the model data

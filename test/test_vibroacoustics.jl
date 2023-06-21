@@ -6,7 +6,7 @@ using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using LinearAlgebra
 using Test
 
-function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt)
+function __computenormal!(normalout::FFltVec, XYZ::FFltMat, tangents::FFltMat, fe_label::FInt, time = 0.0)
     fill!(normalout, 0.0)
     # We are assuming a surface element here!
     if (size(tangents,1) == 3) && (size(tangents,2) == 2)# surface in three dimensions
