@@ -134,7 +134,7 @@ function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::Nodal
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
             @assert Jac != 0.0
-            n = updatenormal!(surfacenormal, loc, J, self.integdomain.fes.label[i]);
+            n = updatenormal!(surfacenormal, loc, J, i, j);
             ffactor = (Jac*w[j])
             Ge = Ge + (ffactor*n)*transposedNs[j]
         end # Loop over quadrature points
@@ -199,7 +199,7 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-            n = updatenormal!(surfacenormal, loc, J, self.integdomain.fes.label[i]);
+            n = updatenormal!(surfacenormal, loc, J, i, j);
             ffactor = (Jac*w[j])
             Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transposedNs[j]
         end # Loop over quadrature points
@@ -225,11 +225,11 @@ end
 
 Compute the acoustic pressure-structure coupling matrix.
 
-The acoustic pressure-nodal force matrix transforms the pressure
-distributed along the surface to forces acting on the nodes of the
-finite element model. Its transpose transforms displacements (or
-velocities, or accelerations) into the normal component of the
-displacement (or velocity, or acceleration) along the surface.
+The acoustic pressure-nodal force matrix transforms the pressure distributed
+along the surface to forces acting on the nodes of the finite element model.
+Its transpose transforms displacements (or velocities, or accelerations) into
+the normal component of the displacement (or velocity, or acceleration) along
+the surface.
 
 # Arguments
 - `geom`=geometry field
@@ -266,7 +266,7 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-            n = updatenormal!(surfacenormal, loc, J, self.integdomain.fes.label[i]);
+            n = updatenormal!(surfacenormal, loc, J, i, j);
             Ge = Ge + (Jac*w[j])*reshape(reshape(n, sdim, 1)*transposedNs[j], size(Ge, 1), size(Ge, 2))
         end # Loop over quadrature points
         coldofnums[1] = i

@@ -619,9 +619,10 @@ Sz = integratefunction(femm, geom, (x) ->  x[3])
 CG = vec([Sx Sy Sz]/V)
   # println("CG=$(CG/phun("mm"))")
   I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
-function Iinteg(x)
-  (norm(x-CG)^2*I3-(x-CG)*(x-CG)')
-end
+  function Iinteg(x)
+    r = vec(x) - CG
+    (norm(r)^2*I3-(r)*(r)')
+  end
 Ixx = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 1])
 Ixy = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 2])
 Ixz = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 3])
@@ -711,11 +712,12 @@ function test()
   abcfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, louter), GaussRule(2, 2)), material)
   D  =  acousticABC(abcfemm, geom, P);
 
+
   # Inner sphere pressure loading
-  function dipole!(dpdn::Vector{FCplxFlt}, xyz, J, label, time)
+  function dipole!(dpdn::Vector{FCplxFlt}, xyz, J, feid, qpid, t)
       n = cross(J[:,1],J[:,2]);
       n = vec(n/norm(n));
-      dpdn[1] = -rho*a_amplitude*sin(omega*time)*n[1]
+      dpdn[1] = -rho*a_amplitude*sin(omega*t)*n[1]
       return dpdn
   end
 
@@ -732,7 +734,7 @@ function test()
   P1 = deepcopy(P0);
 
   t = 0.0
-  fi  =  ForceIntensity(FCplxFlt, 1, (out, XYZ, tangents, fe_label) -> dipole!(out, XYZ, tangents, fe_label, t));
+  fi  =  ForceIntensity(FCplxFlt, 1, (out, XYZ, tangents, feid, qpid) -> dipole!(out, XYZ, tangents, feid, qpid, t));
   La0 = distribloads(dipfemm, geom, P1, fi, 2);
 
   A = (2.0/dt)*S + D + (dt/2.)*C;
@@ -742,7 +744,7 @@ function test()
     step = step  + 1;
     t = t + dt;
     # println("Time $t (  $(step)/$(round(tfinal/dt)+1))")
-    fi  =  ForceIntensity(FCplxFlt, 1, (out, XYZ, tangents, fe_label) -> dipole!(out, XYZ, tangents, fe_label, t));
+    fi  =  ForceIntensity(FCplxFlt, 1, (out, XYZ, tangents, feid, qpid) -> dipole!(out, XYZ, tangents, feid, qpid, t));
     La1 = distribloads(dipfemm, geom, P1, fi, 2);
     vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-C*(2*vP0+(dt/2)*vQ0)+La0+La1);
     vP1 = vP0 + (dt/2)*(vQ0+vQ1);
@@ -845,7 +847,8 @@ function test()
     # println("CG=$(CG/phun("mm"))")
     I3 = [i==j ? one(FFlt) : zero(FFlt) for i=1:3, j=1:3]
   function Iinteg(x)
-    (norm(x-CG)^2*I3-(x-CG)*(x-CG)')
+    r = vec(x) - CG
+    (norm(r)^2*I3-(r)*(r)')
   end
   Ixx = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 1])
   Ixy = integratefunction(femm, geom, (x) ->  Iinteg(x)[1, 2])
@@ -907,7 +910,7 @@ function test()
   D  =  acousticABC(abcfemm, geom, P);
 
   # ABC surface pressure loading
-  function abcp(dpdn, xyz, J, label, t)
+  function abcp(dpdn, xyz, J, t)
       n = cross(J[:,1],J[:,2]);
       n = vec(n/norm(n));
       arg = (-dot(vec(xyz),vec(wavevector))+omega*(t+tshift));
@@ -979,7 +982,7 @@ function test()
   gathersysvec!(pincdd, pincddv)
   gathersysvec!(pinc, pincv);
   L0 = -S * pincddv[freedofs(pincdd)] - Ctild * pincv[freedofs(pincdd)];
-  fi  =  ForceIntensity(FFlt, 1, (dpdn, xyz, J, label) -> abcp(dpdn, xyz, J, label, t));
+  fi  =  ForceIntensity(FFlt, 1, (dpdn, xyz, J, feid, qpid) -> abcp(dpdn, xyz, J, t));
   La0 = distribloads(abcfemm, geom, P1, fi, 2);
 
   A = lu((2.0/dt)*S + D + (dt/2.)*Ctild);
@@ -1002,7 +1005,7 @@ function test()
     gathersysvec!(pincdd, pincddv)
     gathersysvec!(pinc, pincv);
     L1 = -S * pincddv[freedofs(pincdd)] - Ctild * pincv[freedofs(pincdd)];
-    fi  =  ForceIntensity(FFlt, 1, (dpdn, xyz, J, label) -> abcp(dpdn, xyz, J, label, t));
+    fi  =  ForceIntensity(FFlt, 1, (dpdn, xyz, J, feid, qpid) -> abcp(dpdn, xyz, J, t));
     La1 = distribloads(abcfemm, geom, P1, fi, 2);
     vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-Ctild*(2*vP0+(dt/2)*vQ0)+L0+L1+La0+La1);
     vP1 = vP0 + (dt/2)*(vQ0+vQ1);
@@ -1472,7 +1475,7 @@ abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)
 
 # Surface of the piston
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-          material),  "normal_flux"=> (forceout, XYZ, tangents, fe_label) -> (forceout[1] = -rho*a_piston+0.0im; forceout));
+          material),  "normal_flux"=> (forceout, XYZ, tangents, feid, qpid) -> (forceout[1] = -rho*a_piston+0.0im; forceout));
 
 # Make model data
 modeldata =  FDataDict("fens"=>  fens,
