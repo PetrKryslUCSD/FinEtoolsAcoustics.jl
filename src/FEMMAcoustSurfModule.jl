@@ -185,12 +185,12 @@ function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::Noda
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
     ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
-    Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
-    coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
-    rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
-    n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
+    Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- a buffer
+    coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- a buffer
+    rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- a buffer
+    n = fill(zero(FFlt), 3) # normal vector -- a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- a buffer
     gatherdofnums!(Torque, rowdofnums, [1 2 3]);# retrieve degrees of freedom
     startassembly!(assembler, 3*edim*count(fes), 3, nalldofs(P));
     for i = 1:count(fes) # Loop over elements
@@ -253,12 +253,12 @@ function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalF
     npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
     transposedNs = [reshape(N, 1, nne) for N in Ns]
     ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
-    coldofnums = zeros(FInt, 1, 1); # degree of freedom array -- used as a buffer
-    rowdofnums = zeros(FInt, 1, sdim*nne); # degree of freedom array -- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
-    n = fill(zero(FFlt), sdim) # normal vector -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
-    Ge = fill(zero(FFlt), sdim*nne, 1); # Element matrix -- used as a buffer
+    coldofnums = zeros(FInt, 1, 1); # degree of freedom array -- a buffer
+    rowdofnums = zeros(FInt, 1, sdim*nne); # degree of freedom array -- a buffer
+    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- a buffer
+    n = fill(zero(FFlt), sdim) # normal vector -- a buffer
+    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- a buffer
+    Ge = fill(zero(FFlt), sdim*nne, 1); # Element matrix -- a buffer
     startassembly!(assembler, prod(size(Ge)) * count(fes), nalldofs(u), count(fes))
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i]);
