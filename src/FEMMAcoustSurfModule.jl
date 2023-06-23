@@ -19,9 +19,10 @@ using FinEtools.NodalFieldModule: NodalField
 using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using FinEtools.GeneralFieldModule: GeneralField
 using FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
-using FinEtools.FEMMBaseModule: AbstractFEMM
+using FinEtools.FEMMBaseModule: AbstractFEMM, bilform_dot
 using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 using LinearAlgebra: norm, cross
+using FinEtools.DataCacheModule: DataCache
 
 """
     FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M, NF<:Function} <: AbstractFEMM
@@ -47,41 +48,11 @@ Compute the acoustic ABC (Absorbing Boundary Condition) matrix.
 - `Pdot` = rate of the acoustic (perturbation) pressure field
 """
 function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
-    fes = self.integdomain.fes
-    # Constants
-    nfes = count(fes); # number of finite elements in the set
-    ndn = ndofs(Pdot); # number of degrees of freedom per node
-    nne =  nodesperelem(fes); # number of nodes per element
-    sdim =  ndofs(geom);            # number of space dimensions
-    mdim = manifdim(fes);     # manifold dimension of the element
-    Dedim = ndn*nne;          # dimension of the element matrix
-    # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
-    # Material
-    bulk_modulus  =   bulkmodulus(self.material);
-    mass_density  =   massdensity(self.material);
+    bulk_modulus  =  bulkmodulus(self.material);
+    mass_density  =  massdensity(self.material);
     c  =  sqrt(bulk_modulus/mass_density); # sound speed
-    # Prepare assembler and temporaries
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
-    De = fill(zero(FFlt), Dedim, Dedim);                # element matrix -- used as a buffer
-    dofnums = fill(zero(FInt), Dedim); # degree of freedom array -- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
-    startassembly!(assembler, Dedim*Dedim*nfes, nalldofs(Pdot), nalldofs(Pdot));
-    for i = 1:count(fes) # Loop over elements
-        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-        fill!(De, 0.0); # Initialize element matrix
-        for j = 1:npts # Loop over quadrature points
-            locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-            ffactor = (Jac/c*w[j])
-            add_nnt_ut_only!(De, Ns[j], ffactor)
-        end # Loop over quadrature points
-        complete_lt!(De)
-        gatherdofnums!(Pdot, dofnums, fes.conn[i]);# retrieve degrees of freedom
-        assemble!(assembler, De, dofnums, dofnums);# assemble symmetric matrix
-    end # Loop over elements
-    return makematrix!(assembler);
+    oc = 1.0/c;
+    return bilform_dot(self, assembler, geom, Pdot, DataCache(oc); m=2)
 end
 
 function acousticABC(self::FEMMAcoustSurf, geom::NodalField, Pdot::NodalField{T}) where {T<:Number}
