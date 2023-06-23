@@ -229,3 +229,4 @@ end # function allrun
 println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
 
 end # module Fahy_examples
+nothing

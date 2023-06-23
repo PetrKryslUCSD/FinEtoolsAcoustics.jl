@@ -67,3 +67,4 @@ end # function allrun
 println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
 
 end # module rigid_box_examples
+nothing

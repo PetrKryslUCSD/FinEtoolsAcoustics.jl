@@ -54,7 +54,7 @@ function acou_annulus_Q4_example_algo()
     
     # Postprocessing
     File = "acou_annulusmod.vtk"
-    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
+    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.VTK.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
     @async run(`"paraview.exe" $File`)
     
 end # acou_annulus_Q4_example_algo
@@ -66,4 +66,8 @@ function allrun()
     return true
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module acou_annulus_examples
+nothing

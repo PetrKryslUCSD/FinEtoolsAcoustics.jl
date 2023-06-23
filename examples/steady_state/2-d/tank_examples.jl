@@ -84,7 +84,7 @@ function tank_piston_platten()
     
     # Postprocessing
     File = "tank_piston_platten.vtk"
-    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
+    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.VTK.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
     @async run(`"paraview.exe" $File`)
     
 end # tank_piston_platten
@@ -168,7 +168,7 @@ function tank_piston_platten_pressure()
     
     # Postprocessing
     File = "tank_piston_platten_pressure.vtk"
-    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
+    vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.VTK.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
     @async run(`"paraview.exe" $File`)
     
 end # tank_piston_platten_pressure
@@ -183,4 +183,8 @@ function allrun()
     return true
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module tank_examples
+nothing

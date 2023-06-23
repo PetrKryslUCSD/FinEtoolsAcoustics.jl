@@ -110,7 +110,7 @@ function sphere_dipole_1()
     println("Total time elapsed  =  ",time() - t0,"s")
     
     File  =   "sphere_dipole_1.vtk"
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
     scalars = [( "realP", real(P.values))])
     @async run(`"paraview.exe" $File`)
     
@@ -216,12 +216,12 @@ function sphere_inc_example()
     # @async run(`"C:/Program Files (x86)/ParaView 4.2.0/bin/paraview.exe" $File`)
     
     File  =   "Spherepinc.vtk"
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
     scalars = [("realpinc", real(pinc.values))])
     @async run(`"paraview.exe" $File`)
     
     File  =   "SphereP.vtk"
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
     scalars = [( "realP", real(P.values))])
     @async run(`"paraview.exe" $File`)
     
@@ -347,7 +347,7 @@ function sphere_scatterer_example()
     # @async run(`"C:/Program Files (x86)/ParaView 4.2.0/bin/paraview.exe" $File`)
     
     File  =   "SphereP.vtk"
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8; scalars = [("P", abs.(P.values))])
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8; scalars = [("P", abs.(P.values))])
     @async run(`"paraview.exe" $File`)
     
     # File  =   "SphereP.vtk"
@@ -380,4 +380,8 @@ function allrun()
     sphere_scatterer_example()
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module sphere_examples
+nothing

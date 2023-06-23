@@ -1,7 +1,7 @@
 module straight_duct_examples
 using FinEtools
 using FinEtoolsAcoustics
-using UnicodePlots
+using PlotlyLight
 
 function straight_duct_H8_example()
     t0  =  time()
@@ -62,7 +62,7 @@ function straight_duct_H8_example()
     
     File  =   "straight_duct.vtk"
     scalars = real(P.values);
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
     scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
@@ -77,14 +77,25 @@ function straight_duct_H8_example()
     # ax[:set_ylabel]("Pressure")
     # plt.show()
     # set(axis="normal", plotstyle="linespoints", linewidth=3, pointsize = 2, color = "black", xlabel = "x coordinate", ylabel = "Pressure", grid="on", title = "")
+    # ix = sortperm(geom.values[nLx,1])
+    # # f = figure()
+    # # plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    # # plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
+    # # figure(f)
+    # plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
+    # plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
+    # display(plt)
+
+
     ix = sortperm(geom.values[nLx,1])
-    # f = figure()
-    # plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
-    # plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
-    # figure(f)
-    plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
-    plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
-    display(plt)
+
+    p = PlotlyLight.Plot()
+    p(x = geom.values[nLx,1][ix], y = real(P.values)[nLx][ix], type="scatter", mode="lines+markers")
+    p.layout.title.text = "Steady-state pressure"
+    p.layout.xaxis.title = "x"
+    p.layout.yaxis.title = "Pressure Amplitude"
+
+    display(p)
 
     true
     
@@ -150,7 +161,7 @@ function straight_duct_T10_example()
     
     File  =   "straight_duct_T10.vtk"
     scalars = real(P.values);
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T10;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.T10;
     scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
@@ -164,15 +175,26 @@ function straight_duct_T10_example()
     # ax[:set_xlabel]("x coordinate")
     # ax[:set_ylabel]("Pressure")
     # plt.show()
-    # set(axis="normal", plotstyle="linespoints", linewidth=3, pointsize = 2, color = "black", xlabel = "x coordinate", ylabel = "Pressure", grid="on", title = "")
+    # # set(axis="normal", plotstyle="linespoints", linewidth=3, pointsize = 2, color = "black", xlabel = "x coordinate", ylabel = "Pressure", grid="on", title = "")
+    # ix = sortperm(geom.values[nLx,1])
+    # # f = figure()
+    # # plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    # # plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
+    # # figure(f)
+    # plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
+    # plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
+    # display(plt)
+
+
     ix = sortperm(geom.values[nLx,1])
-    # f = figure()
-    # plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
-    # plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
-    # figure(f)
-    plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
-    plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
-    display(plt)
+
+    p = PlotlyLight.Plot()
+    p(x = geom.values[nLx,1][ix], y = real(P.values)[nLx][ix], type="scatter", mode="lines+markers")
+    p.layout.title.text = "Steady-state pressure"
+    p.layout.xaxis.title = "x"
+    p.layout.yaxis.title = "Pressure Amplitude"
+
+    display(p)
 
     true
     
@@ -238,7 +260,7 @@ function straight_duct_T4_example()
     
     File  =   "straight_duct_T4.vtk"
     scalars = real(P.values);
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T4;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.T4;
     scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
@@ -253,14 +275,25 @@ function straight_duct_T4_example()
     # ax[:set_ylabel]("Pressure")
     # plt.show()
     # set(axis="normal", plotstyle="linespoints", linewidth=3, pointsize = 2, color = "black", xlabel = "x coordinate", ylabel = "Pressure", grid="on", title = "")
+    # ix = sortperm(geom.values[nLx,1])
+    # # f = figure()
+    # # plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
+    # # plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
+    # # figure(f)
+    # plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
+    # plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
+    # display(plt)
+
+
     ix = sortperm(geom.values[nLx,1])
-    # f = figure()
-    # plot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], legend = "real", marker = "ecircle")
-    # plot!(geom.values[nLx,1][ix], imag(P.values)[nLx][ix], legend = "imag", marker = "edmd")
-    # figure(f)
-    plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
-    plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
-    display(plt)
+
+    p = PlotlyLight.Plot()
+    p(x = geom.values[nLx,1][ix], y = real(P.values)[nLx][ix], type="scatter", mode="lines+markers")
+    p.layout.title.text = "Steady-state pressure"
+    p.layout.xaxis.title = "x"
+    p.layout.yaxis.title = "Pressure Amplitude"
+
+    display(p)
 
     true
     
@@ -278,4 +311,8 @@ function allrun()
     straight_duct_T4_example()
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module straight_duct_examples
+nothing

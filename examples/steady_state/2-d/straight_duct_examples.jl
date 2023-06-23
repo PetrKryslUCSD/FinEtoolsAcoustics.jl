@@ -1,7 +1,7 @@
 module straight_duct_examples
 using FinEtools
 using FinEtoolsAcoustics
-using UnicodePlots
+using PlotlyLight
 
 function straight_duct_Q8_example()
     t0  =  time()
@@ -62,20 +62,18 @@ function straight_duct_Q8_example()
     
     File  =   "straight_duct_Q8.vtk"
     scalars = real(P.values);
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.Q8;  scalars = [("Pressure", scalars)])
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.Q8;  scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
     
     ix = sortperm(geom.values[nLx,1])
-    # @pgf a = Axis({
-    #           xlabel = "x",
-    #           ylabel = L"$\mathrm{Re}P$, $\mathrm{Im}P$",
-    #           title = "Steady-state pressure"
-    #       },
-    #       Plot(Table([:x => geom.values[nLx,1][ix], :y => real(P.values)[nLx][ix]])), LegendEntry("real"),
-    #       Plot(Table([:x => geom.values[nLx,1][ix], :y => imag(P.values)[nLx][ix]])), LegendEntry("imag"))
-    plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
-    plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
-    display(plt)
+
+    p = PlotlyLight.Plot()
+    p(x = geom.values[nLx,1][ix], y = real(P.values)[nLx][ix], type="scatter", mode="lines+markers")
+    p.layout.title.text = "Steady-state pressure"
+    p.layout.xaxis.title = "x"
+    p.layout.yaxis.title = "Pressure Amplitude"
+
+    display(p)
 
     true
     
@@ -140,22 +138,18 @@ function straight_duct_T3_example()
     
     File  =   "straight_duct.vtk"
     scalars = real(P.values);
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.T3; scalars = [("Pressure", scalars)])
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.T3; scalars = [("Pressure", scalars)])
     @async run(`"paraview.exe" $File`)
      
-    ix = sortperm(geom.values[nLx,1])
-    # @pgf a = Axis({
-    #           xlabel = "x",
-    #           ylabel = L"$\mathrm{Re}P$, $\mathrm{Im}P$",
-    #           title = "Steady-state pressure"
-    #       },
-    #       Plot(Table([:x => geom.values[nLx,1][ix], :y => real(P.values)[nLx][ix]])), LegendEntry("real"),
-    #       Plot(Table([:x => geom.values[nLx,1][ix], :y => imag(P.values)[nLx][ix]])), LegendEntry("imag"))
-    # display(a)
-    plt = lineplot(geom.values[nLx,1][ix], real(P.values)[nLx][ix], canvas = DotCanvas, title = "Steady-state pressure", name = "real", xlabel = "x", ylabel = "P")
-    plt = lineplot!(plt, geom.values[nLx,1][ix], imag(P.values)[nLx][ix], name = "imag")
-    display(plt)
+     ix = sortperm(geom.values[nLx,1])
 
+     p = PlotlyLight.Plot()
+     p(x = geom.values[nLx,1][ix], y = real(P.values)[nLx][ix], type="scatter", mode="lines+markers")
+     p.layout.title.text = "Steady-state pressure"
+     p.layout.xaxis.title = "x"
+     p.layout.yaxis.title = "Pressure Amplitude"
+
+     display(p)
     true
     
 end # straight_duct_T3_example
@@ -169,4 +163,8 @@ function allrun()
     straight_duct_T3_example()
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module straight_duct_examples
+nothing

@@ -66,3 +66,4 @@ end # function allrun
 println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
 
 end # module soft_box_examples
+nothing

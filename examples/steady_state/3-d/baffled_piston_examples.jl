@@ -28,7 +28,7 @@ function baffled_piston_H8_ABC_example_algo()
     fens,fes  =  H8sphere(R,nref);
     bfes  =  meshboundary(fes)
     File  =   "baffledabc_boundary.vtk"
-    vtkexportmesh(File, connasarray(bfes), fens.xyz, FinEtools.MeshExportModule.Q4)
+    vtkexportmesh(File, connasarray(bfes), fens.xyz, FinEtools.MeshExportModule.VTK.Q4)
     @async run(`"paraview.exe" $File`)
     
     l = selectelem(fens,bfes,facing = true,direction = [1.0 1.0  1.0], dotmin= 0.001)
@@ -79,7 +79,7 @@ function baffled_piston_H8_ABC_example_algo()
     P = modeldata["P"]
     
     File  =   "baffledabc.vtk"
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.H8;
+    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
     scalars = [("absP", abs.(P.values))])
     @async run(`"paraview.exe" $File`)
 end # baffled_piston_H8_ABC_example_algo
@@ -91,4 +91,8 @@ function allrun()
     return true
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module baffled_piston_examples
+nothing
