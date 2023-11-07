@@ -23,7 +23,7 @@ using LinearAlgebra: norm
 using FinEtools.DataCacheModule: DataCache
 
 """
-    FEMMAcoust{S<:AbstractFESet, F<:Function, M} <: AbstractFEMM
+    FEMMAcoust{ID<:IntegDomain, M} <: AbstractFEMM
 
 Type for linear acoustics finite element modeling machine.
 """

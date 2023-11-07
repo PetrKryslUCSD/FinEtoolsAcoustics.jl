@@ -25,7 +25,7 @@ using LinearAlgebra: norm, cross
 using FinEtools.DataCacheModule: DataCache
 
 """
-    FEMMAcoustSurf{S<:AbstractFESet, F<:Function, M, NF<:Function} <: AbstractFEMM
+    FEMMAcoustSurf{ID<:IntegDomain, M} <: AbstractFEMM
 
 Class for linear acoustics finite element modeling machine.
 """
