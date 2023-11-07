@@ -1,6 +1,7 @@
 
 module mmrrigid
 using FinEtools
+
 using FinEtoolsAcoustics
 using Test
 import Arpack: eigs
@@ -143,6 +144,7 @@ fahyL2example.test()
 
 module mmfahyH8example
 using FinEtools
+
 using FinEtoolsAcoustics
 using Test
 import Arpack: eigs
@@ -264,6 +266,7 @@ mmfahyH27example.test()
 
 module mstraight_duct_H8_1
 using FinEtools
+
 using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test
@@ -641,6 +644,7 @@ mmiintegrationmm.test()
 
 module mmtransientsphere
 using FinEtools
+
 using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using Test

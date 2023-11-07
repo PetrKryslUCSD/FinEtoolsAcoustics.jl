@@ -6,7 +6,7 @@ Module for linear acoustics algorithms.
 module AlgoAcoustModule
 
 using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
-using FinEtools.AlgoBaseModule: dcheck!, solve!, matrix_blocked, vector_blocked
+using FinEtools.AlgoBaseModule: dcheck!, matrix_blocked, vector_blocked
 using FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!, nfreedofs, nalldofs, gathersysvec
 using FinEtools.NodalFieldModule: NodalField, nnodes
 using FinEtools.FEMMBaseModule: associategeometry!, distribloads

@@ -10,6 +10,9 @@ __precompile__(true)
 
 include("allmodules.jl")
 
+using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+export FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+
 # Exports follow:
 
 ###########################################################################
