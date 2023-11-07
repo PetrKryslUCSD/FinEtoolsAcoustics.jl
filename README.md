@@ -13,6 +13,7 @@ using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
+- 06/22/2023: With the exception of the transient examples, examples work.
 - 06/21/2023: Update for FinEtools 7.0.
 - 05/12/2023: Updated for Julia 1.9.0. 
 - 04/22/2023: Updated for generic FinEtools.
@@ -87,30 +88,9 @@ Acoustics     |   25     25
    Testing FinEtoolsAcoustics tests passed
 ```
 
-## Tutorials
-
-
-Clone the package to your working directory:
-```
-git clone https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl.git
-```
-
-Change your working directory to `FinEtoolsAcoustics`. Start Julia and run
-the following:
-
-```
-using Pkg; Pkg.activate("."); Pkg.instantiate()
-```
-
-The tutorials are in the form of Julia scripts in the folder `FinEtoolsAcoustics.jl/docs/src/tutorials`. The markdown generated from these files is also in the same folder.
-
-To view the markdown, follow the link to the documentation.
-
-To run a tutorial, head over to the `tutorials` folder, open the tutorial script, and evaluate in Julia.
-
 ## Examples
 
 There are a number of examples covering modal analysis, steady-state, and
 transient acoustics. The examples may be executed as described in the
-[conceptual guide to
-`FinEtools`](https://petrkryslucsd.github.io/FinEtools.jl/latest).
+[conceptual guide to `FinEtools`]
+(https://petrkryslucsd.github.io/FinEtools.jl/latest).
