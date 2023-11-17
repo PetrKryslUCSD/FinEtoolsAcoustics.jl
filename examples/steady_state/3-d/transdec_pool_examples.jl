@@ -65,7 +65,7 @@ function transdec_pool_example(freq = 100)
 
     # Surface of the piston
     flux_pos  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_pos_fes, TriRule(3)),
-    material),  "normal_flux"=> -rho*a_piston+0.0im);
+    material),  "normal_flux"=> rho*a_piston+0.0im);
     flux_neg  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_neg_fes, TriRule(3)),
     material),  "normal_flux"=> rho*a_piston+0.0im);
 
