@@ -37,7 +37,6 @@ function transdec_pool_example(freq = 100)
     l2 = selectelem(fens, bfes, facing = true, direction = [+1.0 0.0 0.0])
     l3 = selectelem(fens, bfes, distance = R, from = [0.0, 6.0, 56.65].*phun("ft"), inflate = tolerance)
     l4 = selectelem(fens, bfes, box = [-Inf, Inf, 25.0, 25.0, -Inf, Inf].*phun("ft"), inflate = tolerance)
-    @show length(l4)
 
     lpos = intersect(l2, l3)
     lneg = intersect(l1, l3)
@@ -65,7 +64,7 @@ function transdec_pool_example(freq = 100)
 
     # Surface of the piston
     flux_pos  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_pos_fes, TriRule(3)),
-    material),  "normal_flux"=> rho*a_piston+0.0im);
+    material),  "normal_flux"=> -rho*a_piston+0.0im);
     flux_neg  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_neg_fes, TriRule(3)),
     material),  "normal_flux"=> rho*a_piston+0.0im);
 
