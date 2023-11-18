@@ -6,3 +6,6 @@
 *.jld
 *.sublime-workspace
 docs/build/
+*.vtu
+*.pvd
+
