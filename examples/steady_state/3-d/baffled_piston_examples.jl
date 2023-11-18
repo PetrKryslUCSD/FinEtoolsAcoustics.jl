@@ -79,8 +79,7 @@ function baffled_piston_H8_ABC_example_algo()
     P = modeldata["P"]
     
     File  =   "baffledabc.vtk"
-    vtkexportmesh(File, connasarray(fes), geom.values, FinEtools.MeshExportModule.VTK.H8;
-    scalars = [("absP", abs.(P.values))])
+    vtkexportmesh(File, fens, fes; scalars = [("absP", abs.(P.values)), ("realP", real.(P.values)), ("imagP", imag.(P.values))])
     @async run(`"paraview.exe" $File`)
 end # baffled_piston_H8_ABC_example_algo
 
