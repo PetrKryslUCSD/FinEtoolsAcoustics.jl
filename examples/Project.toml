@@ -5,6 +5,7 @@ FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
 FinEtoolsAcoustics = "72171760-8bdd-11e9-0dbf-b3b512e82515"
 FinEtoolsDeforLinear = "e9187c00-8bdd-11e9-1e70-7ba8303116a2"
 PlotlyLight = "ca7969ec-10b3-423e-8d99-40f33abb42bf"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
 Arpack = "=0.5.3"
