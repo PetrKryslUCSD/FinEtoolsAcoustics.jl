@@ -1,8 +1,9 @@
 module baffled_piston_examples
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
 using FinEtoolsAcoustics
 using LinearAlgebra
-using UnicodePlots
+using PlotlyLight
 
 function baffled_piston_H8_transient()
 	rho = 1.21*phun("kg/m^3");# mass density
@@ -75,7 +76,10 @@ function baffled_piston_H8_transient()
 
 	S  =  acousticstiffness(femm, geom, P);
 	C  =  acousticmass(femm, geom, P);
-	D= (2.0/dt)*S +(dt/2.0)*C;
+
+    S_ff, S_fd = matrix_blocked(S, nfreedofs(P))
+    C_ff, C_fd = matrix_blocked(C, nfreedofs(P))
+    D_ff = (2.0/dt)*S_ff +(dt/2.0)*C_ff;
 
 	P0 = deepcopy(P)
 	Pdd0 = deepcopy(P)
@@ -83,14 +87,16 @@ function baffled_piston_H8_transient()
 	Pdd1 = deepcopy(P)
 	TMPF = deepcopy(P)
 	P = nothing # we don't need this field anymore
-	vP0 = zeros(P0.nfreedofs)
+	vP0 = gathersysvec(P0, :f)
 	vP1 = deepcopy(vP0)
 	vPd0 = deepcopy(vP0)
 	vPd1 = deepcopy(vP0)
+    F_f = deepcopy(vP0)
+    vTMP_d = gathersysvec(P0, :d)
 
 	t = 0.0
-	P0.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
-	Pdd0.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
+	P0.values[piston_fenids,1] .= P_piston*sin(omega*t)
+	Pdd0.values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
 	vP0 = gathersysvec!(P0, vP0)
 
 	nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
@@ -100,14 +106,14 @@ function baffled_piston_H8_transient()
 	while t <=tfinal
 		step = step  +1;
 		t=t+dt;
-		P1.fixed_values[piston_fenids,1] .= P_piston*sin(omega*t)
-		Pdd1.fixed_values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
-		TMPF.fixed_values = P0.fixed_values + P1.fixed_values
-		F = nzebcloadsacousticmass(femm, geom, TMPF);
-		TMPF.fixed_values = Pdd0.fixed_values + Pdd1.fixed_values
-		F = F + nzebcloadsacousticstiffness(femm, geom, TMPF);
+		P1.values[piston_fenids,1] .= P_piston*sin(omega*t)
+		Pdd1.values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
+		TMPF.values = P0.values + P1.values
+        F_f .= C_fd * gathersysvec!(TMPF, vTMP_d, :d)
+		TMPF.values = Pdd0.values + Pdd1.values
+        F_f .+= S_fd * gathersysvec!(TMPF, vTMP_d, :d)
 		# println("$(norm(F))")
-		vPd1 = D\((2/dt)*(S*vPd0) - C*(2*vP0+(dt/2)*vPd0) + F);
+		vPd1 = D_ff \ ((2/dt)*(S_ff*vPd0) - C_ff*(2*vP0+(dt/2)*vPd0) + F_f);
 		vP1 = vP0 + (dt/2)*(vPd0+vPd1);
 		scattersysvec!(P1, vP1); # store current pressure
 		# Swap variables for the next step
@@ -117,23 +123,23 @@ function baffled_piston_H8_transient()
 		copyto!(Pdd0, Pdd1)
 		# Graphics output
 		File  =   "baffled_piston-$(step).vtk"
-		vtkexportmesh(File, fes.conn, fens.xyz, FinEtools.MeshExportModule.H8;
-			scalars = [(  "P", P1.values+P1.fixed_values)])
+		vtkexportmesh(File, fens, fes; scalars = [("P", P1.values+P1.values)])
 		#  @async run(`"paraview.exe" $File`)
 		push!(Pnh, P1.values[nh, 1][1])
 		push!(ts, t)
 		println("step = $( step )")
 	end
 
-	# @pgf a = Axis({
-	#     xlabel = "Time",
-	#     ylabel = "Pnh",
-	#     title = "Transient pressure"
-	# },
-	# Plot(Table([:x => vec(ts), :y => vec(Pnh)])))
-	# display(a)
-	plt = lineplot(vec(ts), vec(Pnh), canvas = DotCanvas, title = "Transient pressure", name = "P", xlabel = "Time", ylabel = "Pnh")
-	display(plt)
+    p = PlotlyLight.Plot()
+        p(x = vec(ts), y = vec(Pnh), mode="markers")
+        p.layout.title.text = "Transient pressure"
+        p.layout.yaxis.title = "Time"
+        # p.layout.yaxis.range = [size(G, 1)+1, 0]
+        p.layout.xaxis.title = "Pressure"
+        # p.layout.xaxis.range = [0, size(G, 2)+1]
+        p.layout.xaxis.side = "top"
+        p.layout.margin.pad = 10
+        display(p)
 
 	# using Plots
 	# plotly()
@@ -189,4 +195,9 @@ function allrun()
     return true
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module baffled_piston_examples
+
+nothing
