@@ -61,7 +61,7 @@ function tank_piston_platten()
     # The pressure boundary condition
     l1 = selectelem(fens, edge_fes, box=[0.0 Piston_radius Tank_height-Piston_height Tank_height-Piston_height]);
     flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(subset(edge_fes, l1), GaussRule(1, 2), axisymmetric),
-    material),  "normal_flux"=> -rho*a_piston+0.0im);
+    material),  "normal_flux"=> -1.0im*rho*a_piston);
     l2 = selectelem(fens, edge_fes, box=[Piston_radius Tank_radius Tank_height Tank_height]);
     ebc2 = FDataDict("node_list"=>connectednodes(subset(edge_fes, l2)),
     "pressure"=>x -> 0.0) # entering the domain

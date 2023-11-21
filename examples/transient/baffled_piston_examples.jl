@@ -147,45 +147,7 @@ function baffled_piston_H8_transient()
 	# gui()
 	println("$(Pnh[end])")
 
-	# # Surface for the ABC
-	# abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)),
-	#           material))
-	#
-	# # Surface of the piston
-	# flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-	#           material),  "normal_flux"=> -rho*a_piston+0.0im);
-	#
-	# # Make model data
-	# modeldata =  FDataDict("fens"=>  fens,
-	#                  "omega"=>omega,
-	#                  "regions"=>[region1],
-	#                  "flux_bcs"=>[flux1], "ABCs"=>[abc1])
-	#
-	# # Call the solver
-	# modeldata = FinEtools.AlgoAcoustModule.steadystate(modeldata)
-	#
-	# println("Computing time elapsed  =  ",time() - t1,"s")
-	# println("Total time elapsed  =  ",time() - t0,"s")
-	#
-	# geom = modeldata["geom"]
-	# P = modeldata["P"]
-	#
-	# File  =   "baffledabc.vtk"
-	# vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
-	# scalars = [("absP", abs.(P.values))])
-	# @async run(`"paraview.exe" $File`)
-	#
-	# # using Winston
-	# # pl  =  FramedPlot(title = "Matrix",xlabel = "x",ylabel = "Re P, Im P")
-	# # setattr(pl.frame, draw_grid = true)
-	# # add(pl, Curve([1:length(C[:])],vec(C[:]), color = "blue"))
-	#
-	# # # pl = plot(geom.values[nLx,1][ix],scalars[nLx][ix])
-	# # # xlabel("x")
-	# # # ylabel("Pressure")
-	# # display(pl)
-	#
-	# true
+    true
 end # baffled_piston_H8_transient
 
 function allrun()

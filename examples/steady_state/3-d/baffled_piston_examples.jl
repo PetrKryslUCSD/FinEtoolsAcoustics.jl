@@ -9,6 +9,7 @@ function baffled_piston_H8_ABC_example_algo()
     bulk =  c^2*rho;
     omega =  7500*phun("rev/s");      # frequency of the piston
     a_piston =  -1.0*phun("mm/s")     # amplitude of the piston acceleration
+    v_piston = a_piston / omega    # amplitude of the piston velocity
     R = 50.0*phun("mm");# radius of the piston
     Ro = 150.0*phun("mm"); # radius of the enclosure
     nref = 4;#number of refinements of the sphere around the piston
@@ -61,7 +62,7 @@ function baffled_piston_H8_ABC_example_algo()
     
     # Surface of the piston
     flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-    material),  "normal_flux"=> -rho*a_piston+0.0im);
+    material),  "normal_flux"=> -1.0im*rho*omega*v_piston);
     
     # Make model data
     modeldata =  FDataDict("fens"=>  fens,
