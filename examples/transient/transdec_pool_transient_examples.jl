@@ -50,7 +50,7 @@ function transect_interpolation(fens, fes, from, to, npoints, geometricaltoleran
     return distances, interp
 end
 
-function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nperiods)
+function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nperiods, save_vtks = false)
     rho = 1000.0*phun("kg/m^3");# mass density
     c  = 1500.0*phun("m/s");# sound speed
     bulk =  c^2*rho;
@@ -62,11 +62,17 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
     dt = 1.0/freq/20;
     tfinal = rim_distance / c  * nperiods
     nsteps = Int(round(tfinal/dt))+1;
-    nbtw = max(1, Int(round(nsteps/300)))
+    nbtw = max(1, Int(round(nsteps/nperiods/100)))
     _pos_pressure_fun(t) = pos_pressure_fun(P_piston, omega, t)
     _pos_pressuredd_fun(t) = (-omega^2)*_pos_pressure_fun(t)
     _neg_pressure_fun(t) = neg_pressure_fun(P_piston, omega, t)
     _neg_pressuredd_fun(t) = (-omega^2)*_neg_pressure_fun(t)
+    # Definition of the transect
+    from = [-0.01524000021336, 1.8288000000000002, 17.2669204572]
+    to = from .+ [-7.5, 0, 0]
+    npoints = 50
+    geometricaltolerance = tolerance / 100
+
 
     t0 = time()
 
@@ -84,9 +90,10 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
     fes = cat(newfes1, fes2)
 
     bfes = meshboundary(fes)
-    File =  "$(name)-boundary.vtk"
-    vtkexportmesh(File, fens, bfes)
-    # @async run(`"paraview.exe" $File`)
+    if save_vtks
+        File =  "$(name)-boundary.vtk"
+        vtkexportmesh(File, fens, bfes)
+    end
 
     l1 = selectelem(fens, bfes, facing = true, direction = [-1.0 0.0 0.0])
     l2 = selectelem(fens, bfes, facing = true, direction = [+1.0 0.0 0.0])
@@ -96,14 +103,16 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
     lpos = intersect(l2, l3)
     lneg = intersect(l1, l3)
 
-    File =  "$(name)-pos.vtk"
-    vtkexportmesh(File, fens, subset(bfes, lpos))
+    if save_vtks
+        File =  "$(name)-pos.vtk"
+        vtkexportmesh(File, fens, subset(bfes, lpos))
 
-    File =  "$(name)-neg.vtk"
-    vtkexportmesh(File, fens, subset(bfes, lneg))
+        File =  "$(name)-neg.vtk"
+        vtkexportmesh(File, fens, subset(bfes, lneg))
 
-    File =  "$(name)-free.vtk"
-    vtkexportmesh(File, fens, subset(bfes, l4))
+        File =  "$(name)-free.vtk"
+        vtkexportmesh(File, fens, subset(bfes, l4))
+    end
 
     # Piston surface mesh
     piston_pos_fes = subset(bfes, lpos);
@@ -154,9 +163,19 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
     Pdd0.values[piston_neg_fenids,1] .= _neg_pressuredd_fun(t)
     vP0 = gathersysvec!(P0, vP0)
 
-    # nh = selectnode(fens, nearestto = [R+Ro/2, 0.0, 0.0] )
-    # Pnh = [P1.values[nh, 1][1]]
-    pressures = [(t, deepcopy(P1.values))]
+    @info "Integration loop"
+    distances, interp = transect_interpolation(fens, fes, from, to, npoints, geometricaltolerance)
+    times = Float64[]
+    push!(times, t)
+    if save_vtks
+        push!(scalars, ("p", deepcopy(P1.values)))
+    end
+    transects = []
+    ptrans = zeros(npoints)
+    for (j, ip) in enumerate(interp)
+        ptrans[j] = dot(ip[2], P1.values[ip[1]])
+    end
+    push!(transects, ptrans)
     step = 0;
     while t <=tfinal
         step = step  +1;
@@ -173,7 +192,15 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
         vP1 = vP0 + (dt/2)*(vPd0+vPd1);
         scattersysvec!(P1, vP1); # store current pressure
         if rem(step+1, nbtw) == 0
-            push!(pressures, (t, deepcopy(P1.values)))
+            push!(times, t)
+            if save_vtks
+                push!(scalars, ("p", deepcopy(P1.values)))
+            end
+            ptrans = zeros(npoints)
+            for (j, ip) in enumerate(interp)
+                ptrans[j] = dot(ip[2], P1.values[ip[1]])
+            end
+            push!(transects, ptrans)
         end
         # Swap variables for the next step
         copyto!(vP0, vP1)
@@ -186,25 +213,6 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
     # Visualization
     @info "Dumping visualization"
 
-    from = [-0.01524000021336, 1.8288000000000002, 17.2669204572]
-    to = from .+ [-7.5, 0, 0]
-    npoints = 50
-    geometricaltolerance = tolerance / 100
-    distances, interp = transect_interpolation(fens, fes, from, to, npoints, geometricaltolerance)
-
-    times = Float64[]
-    scalars = []
-    transects = []
-    for i in 1:length(pressures)
-        t, p = pressures[i]
-        push!(scalars, ("p", deepcopy(p)))
-        ptrans = zeros(npoints)
-        for (j, ip) in enumerate(interp)
-            ptrans[j] = dot(ip[2], p[ip[1]])
-        end
-        push!(transects, ptrans)
-        push!(times, t)
-    end
     d = Dict(
         "freq" => freq,
         "rim_distance" => rim_distance,
@@ -214,8 +222,11 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
         "transects" => transects
         )
     DataDrop.store_json("$(name)-f=$(freq)-ptrans", d)
+    if save_vtks
+        vtkwritecollection("$(name)-f=$(freq)-p", fens, fes, times; scalars = scalars)
+    end
 
-    vtkwritecollection("$(name)-f=$(freq)-p", fens, fes, times; scalars = scalars)
+    @info "Done"
 
     true
 end #
@@ -230,7 +241,7 @@ function plot_transects(f)
     for i in eachindex(d["times"])
         p = ptrans[i]
         rt = d["times"][i] * d["c"] / d["rim_distance"]
-        pl = plot(vec(distances), vec(p), leg = false, ylims = (-1000, 1000), title = "$(round(rt, digits=3))", xaxis = ("Distance",), yaxis = ("Pressure",))
+        pl = plot(vec(distances), vec(p), leg = false, ylims = (-1000, 1000), title = "# radii traversed by wave: $(round(rt, digits=3))", xaxis = ("Distance along transect",), yaxis = ("Pressure",))
         sleep(0.2)
         display(pl)
     end
@@ -242,7 +253,7 @@ function transdec_pool_pulse(freq = 100)
 end
 
 function transdec_pool_cw(freq = 100)
-    _run_transdec_pool("transdec_pool_cw", freq, _pressure_cw, _pressure_cw, 3)
+    _run_transdec_pool("transdec_pool_cw", freq, _pressure_cw, _pressure_cw, 10.0)
 end
 
 function allrun()
@@ -254,7 +265,9 @@ function allrun()
     # transdec_pool_harmonic(750)
     # transdec_pool_harmonic(1000)
     # transdec_pool_pulse(100)
-    transdec_pool_cw(100)
+    for freq in [125, ]
+        transdec_pool_cw(freq)
+    end
     return true
 end # function allrun
 
