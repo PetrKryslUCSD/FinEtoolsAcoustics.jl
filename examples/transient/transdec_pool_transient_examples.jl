@@ -205,9 +205,13 @@ function _run_transdec_pool(name, freq, pos_pressure_fun, neg_pressure_fun, nper
         push!(transects, ptrans)
         push!(times, t)
     end
-    d = Dict("times" => times,
-            "distances" => distances,
-            "transects" => transects
+    d = Dict(
+        "freq" => freq,
+        "rim_distance" => rim_distance,
+        "c" => c,
+        "times" => times,
+        "distances" => distances,
+        "transects" => transects
         )
     DataDrop.store_json("$(name)-f=$(freq)-ptrans", d)
 
@@ -221,20 +225,16 @@ function plot_transects(f)
     ptrans = d["transects"]
     distances = d["distances"]
     gr()
-    # plot = PlotlyLight.Plot()
-    # plot.layout.yaxis.title = "Distance"
-    # plot.layout.xaxis.title = "Pressure"
-    # plot.layout.xaxis.side = "top"
-    # plot.layout.margin.pad = 10
+    pl = nothing
     p = ptrans[1]
-    pl = plot(vec(distances), vec(p), leg = false, ylims = (-1000, 1000))
     for i in eachindex(d["times"])
         p = ptrans[i]
-        pl = plot(vec(distances), vec(p), leg = false, ylims = (-1000, 1000))
-        sleep(0.1)
+        rt = d["times"][i] * d["c"] / d["rim_distance"]
+        pl = plot(vec(distances), vec(p), leg = false, ylims = (-1000, 1000), title = "$(round(rt, digits=3))", xaxis = ("Distance",), yaxis = ("Pressure",))
+        sleep(0.2)
         display(pl)
     end
-    # gif(anim, "anim_gr_ref002.gif")
+    return pl
 end
 
 function transdec_pool_pulse(freq = 100)
