@@ -46,11 +46,11 @@ abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)
           material))
 ```
 
-The  surface of the piston is associated with a known-flux  boundary condition:
+The  surface of the piston is associated with a known-flux  boundary condition (prescribed normal component of the velocity):
 
 ```julia
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-          material),  "normal_flux"=> -rho*a_piston+0.0im);
+          material),  "normal_flux"=> -1.0im*rho*omega*v_piston);
 ```
 
 And finally we make the model data,
