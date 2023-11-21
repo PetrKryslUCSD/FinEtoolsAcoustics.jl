@@ -1159,7 +1159,7 @@ abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)
 
 # Surface of the piston
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-          material),  "normal_flux"=> -rho*a_piston+0.0im);
+          material),  "normal_flux"=> -1.0im*rho*a_piston);
 
 # Make model data
 modeldata =  FDataDict("fens"=>  fens,
@@ -1176,7 +1176,7 @@ modeldata = AlgoAcoustModule.steadystate(modeldata)
 geom = modeldata["geom"]
 P = modeldata["P"]
 
-@test abs(P.values[1]-(4.355914465396856e-6 - 1.2061599990585114e-6im)) < 1.e-10
+@test abs(P.values[1]-(1.2061599990626182e-6 + 4.355914465356351e-6im)) < 1.e-10
 # File  =   "baffledabc.vtk"
 # vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
 # scalars = [("absP", abs.(P.values))])
@@ -1479,7 +1479,7 @@ abc1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)
 
 # Surface of the piston
 flux1  =  FDataDict("femm"=>FEMMAcoustSurf(IntegDomain(piston_fes, GaussRule(2, 2)),
-          material),  "normal_flux"=> (forceout, XYZ, tangents, feid, qpid) -> (forceout[1] = -rho*a_piston+0.0im; forceout));
+          material),  "normal_flux"=> (forceout, XYZ, tangents, feid, qpid) -> (forceout[1] = -1.0im*rho*a_piston; forceout));
 
 # Make model data
 modeldata =  FDataDict("fens"=>  fens,
@@ -1496,7 +1496,7 @@ modeldata = FinEtoolsAcoustics.AlgoAcoustModule.steadystate(modeldata)
 geom = modeldata["geom"]
 P = modeldata["P"]
 
-@test abs(P.values[1]-(4.355914465396856e-6 - 1.2061599990585114e-6im)) < 1.e-10
+@test abs(P.values[1]-(4.355914465396856e-6im + 1.2061599990585114e-6)) < 1.e-10
 # File  =   "baffledabc.vtk"
 # vtkexportmesh(File, fes.conn, geom.values, FinEtools.MeshExportModule.H8;
 # scalars = [("absP", abs.(P.values))])
