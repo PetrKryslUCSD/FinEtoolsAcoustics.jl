@@ -33,9 +33,9 @@ mutable struct FEMMAcoust{ID<:IntegDomain, M} <: AbstractFEMM
 end
 
 """
-    acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+    acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
 
-Compute the acoustic mass matrix.
+Compute the acoustic "stiffness" matrix.
 
 # Arguments
 - `self`   =  acoustics model
@@ -45,37 +45,65 @@ Compute the acoustic mass matrix.
 
 Return a matrix.
 
+The acoustic "stiffness" matrix is by convention called stiffness, however its
+mechanical meaning is quite different. (It has to do with kinetic energy.) It
+is the matrix ``\\mathbf{K}_a`` in this matrix ODE system for the acoustic
+pressure:
+
+```math
+\\mathbf{M}_a \\mathbf{\\ddot{p}}
++ \\mathbf{K}_a \\mathbf{{p}} =
+\\mathbf{{f}}
+```
+
 !!! note
 
     The bilinear-form function  [`bilform_diffusion`](@ref) is used to compute
     the matrix.
 """
-function acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
     f = DataCache(1.0)
     return bilform_diffusion(self, assembler, geom, P, f)
 end
 
-function acousticmass(self::FEMMAcoust, geom::NodalField, P::NodalField{T}) where {T<:Number}
+function acousticstiffness(self::FEMMAcoust, geom::NodalField, P::NodalField{T}) where {T<:Number}
     # Make the default assembler object.
     assembler  =  SysmatAssemblerSparseSymm();
-    return acousticmass(self, assembler, geom, P);
+    return acousticstiffness(self, assembler, geom, P);
 end
 
 """
-    acousticstiffness(self::FEMMAcoust, assembler::A,
+    acousticmass(self::FEMMAcoust, assembler::A,
       geom::NodalField,
       Pddot::NodalField{T}) where {T<:Number,
       A<:AbstractSysmatAssembler}
 
-Compute the acoustic stiffness matrix.
+Compute the acoustic mass matrix.
 
 # Arguments
 - `self`   =  acoustics model
 - `assembler`  =  matrix assembler
 - `geom` = geometry field
 - `Pddot` = second order rate of the acoustic (perturbation) pressure field
+
+
+The acoustic "mass" matrix is by convention called mass, however its
+mechanical meaning is quite different. (It has to do with potential energy.) It
+is the matrix ``\\mathbf{M}_a`` in this matrix ODE system for the acoustic
+pressure:
+
+```math
+\\mathbf{M}_a \\mathbf{\\ddot{p}}
++ \\mathbf{K}_a \\mathbf{{p}} =
+\\mathbf{{f}}
+```
+
+!!! note
+
+    The bilinear-form function  [`bilform_dot`](@ref) is used to compute
+    the matrix.
 """
-function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pddot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+function acousticmass(self::FEMMAcoust, assembler::A, geom::NodalField, Pddot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
     # Material
     bulk_modulus  =  bulkmodulus(self.material);
     mass_density  =  massdensity(self.material);
@@ -85,10 +113,10 @@ function acousticstiffness(self::FEMMAcoust, assembler::A, geom::NodalField, Pdd
     return bilform_dot(self, assembler, geom, Pddot, f)
 end
 
-function acousticstiffness(self::FEMMAcoust, geom::NodalField, Pddot::NodalField{T}) where {T<:Number}
+function acousticmass(self::FEMMAcoust, geom::NodalField, Pddot::NodalField{T}) where {T<:Number}
     # Make the default assembler object.
     assembler  =  SysmatAssemblerSparseSymm();
-    return acousticstiffness(self, assembler, geom, Pddot);
+    return acousticmass(self, assembler, geom, Pddot);
 end
 
 end

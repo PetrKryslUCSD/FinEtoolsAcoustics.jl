@@ -15,7 +15,7 @@ using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 using FinEtools.FieldModule: ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asvec!, gathervalues_asmat!, nalldofs
 using FinEtools.NodalFieldModule: NodalField, nnodes
 using FinEtools.FENodeToFEMapModule: FENodeToFEMap
-import ..FEMMAcoustModule: acousticmass
+import ..FEMMAcoustModule: acousticstiffness
 using FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, makevector!, SysvecAssembler
 using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, complete_lt!, loc!, jac!, locjac!, adjugate3!
 using FinEtools.FEMMBaseModule: AbstractFEMM
@@ -139,7 +139,7 @@ function associategeometry!(self::F,  geom::NodalField{FFlt}) where {F<:FEMMAcou
 end
 
 """
-    acousticmass(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+    acousticstiffness(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
 
 Compute the acoustic mass matrix.
 
@@ -151,7 +151,7 @@ Compute the acoustic mass matrix.
 
 Return a matrix.
 """
-function acousticmass(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
+function acousticstiffness(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
     @assert self.associated
     fes = self.integdomain.fes
     elmatsizeguess = 4*nodesperelem(fes)*ndofs(P)
@@ -171,10 +171,10 @@ function acousticmass(self::FEMMAcoustNICE, assembler::A, geom::NodalField, P::N
     return makematrix!(assembler);
 end
 
-function acousticmass(self::FEMMAcoustNICE, geom::NodalField, P::NodalField{T}) where {T<:Number}
+function acousticstiffness(self::FEMMAcoustNICE, geom::NodalField, P::NodalField{T}) where {T<:Number}
     # Make the default assembler object.
     assembler  =  SysmatAssemblerSparseSymm();
-    return acousticmass(self, assembler, geom, P);
+    return acousticstiffness(self, assembler, geom, P);
 end
 
 end

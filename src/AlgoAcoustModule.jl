@@ -10,7 +10,7 @@ using FinEtools.AlgoBaseModule: dcheck!, matrix_blocked, vector_blocked
 using FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!, nfreedofs, nalldofs, gathersysvec
 using FinEtools.NodalFieldModule: NodalField, nnodes
 using FinEtools.FEMMBaseModule: associategeometry!, distribloads
-using ..FEMMAcoustModule: acousticmass, acousticstiffness
+using ..FEMMAcoustModule: acousticstiffness, acousticmass
 using ..FEMMAcoustSurfModule: acousticABC
 using FinEtools.ForceIntensityModule: ForceIntensity
 using SparseArrays: spzeros
@@ -112,8 +112,8 @@ function steadystate(modeldata::FDataDict)
 
     # Construct the system acoustic mass and stiffness matrix
     # and the absorbing boundary condition (ABC) matrix
-    C = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
-    S = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
+    Ka = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
+    Ma = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
     D = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
     regions = get(()->error("Must get regions!"), modeldata, "regions")
     for i in eachindex(regions)
@@ -121,8 +121,8 @@ function steadystate(modeldata::FDataDict)
         dcheck!(region, regions_recognized_keys)
         femm = get(()->error("Must get femm for the region!"), region, "femm");
         # Add up all the acoustic mass matrices for all the regions
-        C = C + acousticmass(femm, geom, P);
-        S  = S + acousticstiffness(femm, geom, P);
+        Ka = Ka + acousticstiffness(femm, geom, P);
+        Ma  = Ma + acousticmass(femm, geom, P);
     end
 
     # Compute the ABC matrices
@@ -159,20 +159,20 @@ function steadystate(modeldata::FDataDict)
     end
 
     # Separate the blocks of the system matrices
-    S_ff, S_fd = matrix_blocked(S, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
-    C_ff, C_fd = matrix_blocked(C, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
+    Ma_ff, Ma_fd = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
+    Ka_ff, Ka_fd = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
     D_ff, D_fd = matrix_blocked(D, nfreedofs(P), nfreedofs(P))[(:ff, :fd)]
     F_f, F_d = vector_blocked(F, nfreedofs(P))[(:f, :d)]
 
     # Loads due to the essential boundary conditions on the pressure field
     essential_bcs = get(modeldata, "essential_bcs", nothing);
     if (essential_bcs != nothing)
-        F_f = F_f - C_fd * F_d - S_fd * F_d
+        F_f = F_f - Ka_fd * F_d - Ma_fd * F_d
     end
 
     # Solve for the pressures
-    K = lu((-omega^2*S_ff +omega*1.0im*D_ff + C_ff));
-    vP = K\F_f;
+    A = lu((-omega^2*Ma_ff +omega*1.0im*D_ff + Ka_ff));
+    vP = A\F_f;
     scattersysvec!(P, vP[:])
 
     # Update the model data

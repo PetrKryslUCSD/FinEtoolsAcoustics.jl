@@ -35,10 +35,10 @@ numberdofs!(P)
 femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), MatAcoustFluid(bulk, rho))
 
 
-S = acousticstiffness(femm, geom, P);
-C = acousticmass(femm, geom, P);
+Ma = acousticmass(femm, geom, P);
+Ka = acousticstiffness(femm, geom, P);
 
-d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+d,v,nev,nconv = eigs(Ka+OmegaShift*Ma, Ma; nev=neigvs, which=:SM)
 d = d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
@@ -97,10 +97,10 @@ numberdofs!(P)
 femm = FEMMAcoust(IntegDomain(fes, TetRule(1)), MatAcoustFluid(bulk, rho))
 
 
-S = acousticstiffness(femm, geom, P);
-C = acousticmass(femm, geom, P);
+Ma = acousticmass(femm, geom, P);
+Ka = acousticstiffness(femm, geom, P);
 
-d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+d,v,nev,nconv = eigs(Ka+OmegaShift*Ma, Ma; nev=neigvs, which=:SM)
 d = d .- OmegaShift;
 fs = real(sqrt.(complex(d)))/(2*pi)
 # println("Eigenvalues: $fs [Hz]")
@@ -159,10 +159,10 @@ P = NodalField(fill(zero(FFlt), size(fens.xyz,1),1))
 numberdofs!(P)
 
 femm = FEMMAcoust(IntegDomain(fes, TetRule(1)), MatAcoustFluid(bulk, rho))
-S = acousticstiffness(femm, geom, P);
+S = acousticmass(femm, geom, P);
 femm = FEMMAcoustNICE(IntegDomain(fes, NodalSimplexRule(3)), MatAcoustFluid(bulk, rho))
 associategeometry!(femm,  geom)
-C = acousticmass(femm, geom, P);
+C = acousticstiffness(femm, geom, P);
 
 d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
 d = d .- OmegaShift;
@@ -223,10 +223,10 @@ P = NodalField(fill(zero(FFlt), size(fens.xyz,1),1))
 numberdofs!(P)
 
 femm = FEMMAcoust(IntegDomain(fes, TetRule(1)), MatAcoustFluid(bulk, rho))
-S = acousticstiffness(femm, geom, P);
+S = acousticmass(femm, geom, P);
 femm = FEMMAcoustNICE(IntegDomain(fes, NodalSimplexRule(3)), MatAcoustFluid(bulk, rho))
 associategeometry!(femm,  geom)
-C = acousticmass(femm, geom, P);
+C = acousticstiffness(femm, geom, P);
 
 d,v,nev,nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
 d = d .- OmegaShift;

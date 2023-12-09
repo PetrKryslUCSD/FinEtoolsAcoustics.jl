@@ -1,8 +1,8 @@
 """
-FinEtools (C) 2017-2019, Petr Krysl
+FinEtools (C) 2017-2023, Petr Krysl
 
 Finite Element tools.  Julia implementation  of the finite element method
-for continuum mechanics. Package for heat diffusion problems.
+for continuum mechanics. Package for acoustic problems.
 """
 module FinEtoolsAcoustics
 
@@ -22,13 +22,13 @@ using FinEtoolsAcoustics.MatAcoustFluidModule: MatAcoustFluid
 # Exported: type of acoustic fluid material
 export MatAcoustFluid
 
-using FinEtoolsAcoustics.FEMMAcoustModule: FEMMAcoust, acousticmass,  acousticstiffness
+using FinEtoolsAcoustics.FEMMAcoustModule: FEMMAcoust, acousticstiffness,  acousticmass
 # Exported: type for linear acoustics  and discretization methods
-export FEMMAcoust, acousticmass, acousticstiffness
+export FEMMAcoust, acousticstiffness, acousticmass
 
-using FinEtoolsAcoustics.FEMMAcoustNICEModule: FEMMAcoustNICE, acousticmass
+using FinEtoolsAcoustics.FEMMAcoustNICEModule: FEMMAcoustNICE, acousticstiffness
 # Exported: type for linear acoustics  and discretization methods
-export FEMMAcoustNICE, acousticmass
+export FEMMAcoustNICE, acousticstiffness
 
 using FinEtoolsAcoustics.FEMMAcoustSurfModule: FEMMAcoustSurf, acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
 # Exported: type for acoustic absorbing boundary condition  and  transformation matrices from pressure  to resultants
