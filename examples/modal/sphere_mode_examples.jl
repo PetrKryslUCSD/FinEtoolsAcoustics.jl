@@ -1,5 +1,6 @@
 module sphere_mode_examples
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked
 using FinEtoolsAcoustics
 using FinEtools.MeshExportModule
 using LinearAlgebra
@@ -100,10 +101,12 @@ function sphere_h8_in_air()
     
     femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), MatAcoustFluid(bulk,rho))
     
-    S = acousticstiffness(femm, geom, P);
-    C = acousticmass(femm, geom, P);
-    
-    d, v, nconv = eigs(C, S; nev=neigvs, which=:SM, explicittransform=:none)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+    Ma_ff = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[:ff]
+    Ka_ff = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[:ff]
+    d,v,nev,nconv = eigs(Ka_ff, Ma_ff; nev=neigvs, which=:SM, explicittransform=:none)
+
     v = real.(v)
     fs=real(sqrt.(complex(d)))./(2*pi)
     @info("Frequencies: $fs [Hz]")
@@ -171,10 +174,11 @@ function sphere_t4_in_water()
     femm = FEMMAcoust(IntegDomain(fes, TetRule(1)),
     MatAcoustFluid(bulk,rho))
     
-    S = acousticstiffness(femm, geom, P);
-    C = acousticmass(femm, geom, P);
-    
-    d, v, nconv = eigs(C, S; nev=neigvs, which=:SM, explicittransform=:none)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+    Ma_ff = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[:ff]
+    Ka_ff = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[:ff]
+    d,v,nev,nconv = eigs(Ka_ff, Ma_ff; nev=neigvs, which=:SM, explicittransform=:none)
     v = real.(v)
     fs=real(sqrt.(complex(d)))./(2*pi)
     @info("Frequencies: $fs [Hz]")
