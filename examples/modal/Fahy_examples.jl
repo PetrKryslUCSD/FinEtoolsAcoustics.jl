@@ -33,11 +33,10 @@ function fahy_H20_example()
     
     femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
     
-    
-    S = acousticstiffness(femm, geom, P);
-    C = acousticmass(femm, geom, P);
-    
-    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+
+    d,v,nev,nconv = eigs(Ka+OmegaShift*Ma, Ma; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     v = real.(v)
     fs = real(sqrt.(complex(d)))/(2*pi)
@@ -86,10 +85,10 @@ function fahy_H27_example()
     femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
     
     
-    S = acousticstiffness(femm, geom, P);
-    C = acousticmass(femm, geom, P);
-    
-    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+
+    d,v,nev,nconv = eigs(Ka+OmegaShift*Ma, Ma; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     v = real.(v)
     fs = real(sqrt.(complex(d)))/(2*pi)
@@ -134,10 +133,10 @@ function fahy_H8_example()
     femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), MatAcoustFluid(bulk, rho))
     
     
-    S = acousticstiffness(femm, geom, P);
-    C = acousticmass(femm, geom, P);
-    
-    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+
+    d,v,nev,nconv = eigs(Ka+OmegaShift*Ma, Ma; nev=neigvs, which=:SM)
     d = d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     v = real.(v)
@@ -185,10 +184,10 @@ function fahy_L2_example()
     
     femm = FEMMAcoust(IntegDomain(fes, GaussRule(1, 2)), MatAcoustFluid(bulk, rho))
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
-    
-    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+
+    d,v,nev,nconv = eigs(Ka+OmegaShift*Ma, Ma; nev=neigvs, which=:SM)
     d  =  d .- OmegaShift;
     fs = real(sqrt.(complex(d)))/(2*pi)
     v = real.(v)

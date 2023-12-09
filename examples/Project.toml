@@ -10,6 +10,6 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 [compat]
 Arpack = "=0.5.3"
 FinEtools = "^7"
-FinEtoolsAcoustics = "^2"
+FinEtoolsAcoustics = "^3"
 FinEtoolsDeforLinear = "^2"
 julia = "^1.9"

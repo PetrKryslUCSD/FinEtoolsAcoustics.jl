@@ -2,7 +2,7 @@
 
 julia_version = "1.9.4"
 manifest_format = "2.0"
-project_hash = "a0981a16a853abac0e21f08f04cdc76439c7007b"
+project_hash = "e1f49c71e0b64ed1681d16d9b7e649bbc2412861"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -277,9 +277,9 @@ version = "7.1.7"
 
 [[deps.FinEtoolsAcoustics]]
 deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "af983a1d8028b20c36ff989749a2b6f508c49242"
+path = ".."
 uuid = "72171760-8bdd-11e9-0dbf-b3b512e82515"
-version = "2.0.1"
+version = "3.0.0"
 
 [[deps.FinEtoolsDeforLinear]]
 deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "SuiteSparse", "Test"]
