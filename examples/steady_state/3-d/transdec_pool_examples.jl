@@ -15,8 +15,12 @@ function transdec_pool_example(freq = 100)
 
     t0  =  time()
     
-    # Hexahedral mesh
-    mesh = import_ABAQUS(joinpath(@__DIR__, "transdec-pool-quarter.inp"))
+    data = joinpath(dirname(@__FILE__()), "../data")
+    input = "transdec-pool-quarter.inp"
+    if !isfile(joinpath(data, input))
+        success(run(`unzip -qq -d $(data) $(joinpath(data, "data.zip"))`; wait = true))
+    end
+    mesh = import_ABAQUS(joinpath(data, input))
     fens = mesh["fens"]
     fes = mesh["fesets"][1]
 
