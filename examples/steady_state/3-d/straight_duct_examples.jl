@@ -40,8 +40,8 @@ function straight_duct_H8_example()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
     
     
     E10femm  =  FEMMAcoustSurf(IntegDomain(subset(bfes,L10),GaussRule(2, 2)), material)
@@ -51,7 +51,7 @@ function straight_duct_H8_example()
     fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
     F  =  distribloads(E0femm, geom, P, fi, 2);
     
-    p = (-omega^2*S +omega*1.0im*D + C)\F 
+    p = (-omega^2*Ma +omega*1.0im*D + Ka)\F
     scattersysvec!(P, p[:])
     
     println("Pressure amplitude bounds: ")
@@ -139,8 +139,8 @@ function straight_duct_T10_example()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, TetRule(5)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
     
     
     E10femm  =  FEMMAcoustSurf(IntegDomain(subset(bfes,L10),TriRule(6)), material)
@@ -150,7 +150,7 @@ function straight_duct_T10_example()
     fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
     F  =  distribloads(E0femm, geom, P, fi, 2);
     
-    p = (-omega^2*S +omega*1.0im*D + C)\F
+    p = (-omega^2*Ma +omega*1.0im*D + Ka)\F
     scattersysvec!(P, p[:])
     
     println("Pressure amplitude bounds: ")
@@ -238,8 +238,8 @@ function straight_duct_T4_example()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, SimplexRule(3, 1)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
     
     
     E10femm  =  FEMMAcoustSurf(IntegDomain(subset(bfes,L10),TriRule(3)), material)
@@ -249,7 +249,7 @@ function straight_duct_T4_example()
     fi  =  ForceIntensity(-1.0im*omega*rho*vn0);
     F  =  distribloads(E0femm, geom, P, fi, 2);
     
-    p = (-omega^2*S +omega*1.0im*D + C)\F
+    p = (-omega^2*Ma +omega*1.0im*D + Ka)\F
     scattersysvec!(P, p[:])
     
     println("Pressure amplitude bounds: ")

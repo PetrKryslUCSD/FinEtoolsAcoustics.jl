@@ -80,26 +80,27 @@ function sphere_dipole_1()
     
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
-    
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
     
     abcfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, louter), GaussRule(2, 2)), material)
     D  =  acousticABC(abcfemm, geom, P);
     
     # Inner sphere pressure loading
-    function dipole(dpdn, xyz, J, label)
+    function dipole(dpdn, xyz, J, label, qpid)
         n = cross(J[:,1],J[:,2]);
         n = vec(n/norm(n));
         #println("$( (-1.0im)*dot(vec(k),n)*exp(-1.0im*dot(vec(k),vec(xyz))) )")
         dpdn[1] = -rho*a_amplitude*n[1]
+        return dpdn
     end
     
     fi  =  ForceIntensity(FCplxFlt, 1, dipole);
     dipfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, linner), GaussRule(2, 2)), material)
     F  = distribloads(dipfemm, geom, P, fi, 2);
     
-    K = lu((1.0+0.0im)*(-omega^2*S + omega*1.0im*D + C)) # We fake a complex matrix here
+    K = lu((1.0+0.0im)*(-omega^2*Ma + omega*1.0im*D + Ka)) # We fake a complex matrix here
     p = K\F  #
     
     scattersysvec!(P, p[:])
@@ -172,8 +173,8 @@ function sphere_inc_example()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
     
     abcfemm  =  FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 2)), material)
     D  =  acousticABC(abcfemm, geom, P);
@@ -189,18 +190,19 @@ function sphere_inc_example()
     F  =  0.0 * vpinc;                # Start with a zero vector
     
     #pfemm = FEMMBase(inner_fes, GaussRule(order = 2,dim = 2))
-    function dpincdn(dpdn, xyz, J, label)
+    function dpincdn(dpdn, xyz, J, label, qpid)
         n = cross(J[:,1],J[:,2]);
         n = vec(n/norm(n));
         #println("$( (-1.0im)*dot(vec(k),n)*exp(-1.0im*dot(vec(k),vec(xyz))) )")
         dpdn[1] =  pincampl*(-1.0im)*dot(vec(k),n)*exp(-1.0im*dot(vec(k),vec(xyz)))
+        return dpdn
     end
     
     fi  =  ForceIntensity(FCplxFlt, 1, dpincdn);
     #F  =  F - distribloads(pfemm, nothing, geom, P, fi, 2);
     F  =  F + distribloads(abcfemm, geom, P, fi, 2);
     
-    K = lu((1.0+0.0im)*(-omega^2*S + C)) # We fake a complex matrix here
+    K = lu((1.0+0.0im)*(-omega^2*Ma + Ka)) # We fake a complex matrix here
     p = K\F  #+omega*1.0im*D
     
     scattersysvec!(P,p[:])
@@ -301,8 +303,8 @@ function sphere_scatterer_example()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
     
     abcfemm  =  FEMMAcoustSurf(IntegDomain(outer_fes, GaussRule(2, 3)), material)
     D  =  acousticABC(abcfemm, geom, P);
@@ -314,20 +316,21 @@ function sphere_scatterer_example()
     end
     vpinc = gathersysvec(pinc)
     
-    F  =  - (-omega^2*S + C) * vpinc;
+    F  =  - (-omega^2*Ma + Ka) * vpinc;
     
     #pfemm = FEMMBase(inner_fes, GaussRule(order = 2,dim = 2))
-    function dpincdn(dpdn, xyz, J, label)
+    function dpincdn(dpdn, xyz, J, label, qpid)
         xyz = vec(xyz);
         n = cross(J[:,1],J[:,2]);
         n = vec(n/norm(n));
         dpdn[1] = pincampl*(-1.0im)*dot(vec(k),n)*exp(-1.0im*dot(vec(k),vec(xyz)))
+        return dpdn
     end
     
     fi  =  ForceIntensity(FCplxFlt, 1, dpincdn);
     F  =  F + distribloads(abcfemm, geom, P, fi, 2);
     
-    K = ((-omega^2*S + omega*1.0im*D + C))
+    K = ((-omega^2*Ma + omega*1.0im*D + Ka))
     p = K\F
     
     scattersysvec!(P,p[:])

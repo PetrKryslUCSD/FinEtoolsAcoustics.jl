@@ -49,7 +49,7 @@ Change your working directory, and run Julia:
 $ cd FinEtoolsAcoustics.jl/
 
 PetrKrysl@Spectre MINGW64 /tmp/exp/FinEtoolsAcoustics.jl (master)
-$ ~/AppData/Local/Julia-1.2.0-rc1/bin/julia.exe
+$ julia.exe
                _
    _       _ _(_)_     |  Documentation: https://docs.julialang.org
   (_)     | (_) (_)    |
@@ -83,10 +83,16 @@ Test the package:
 (FinEtoolsAcoustics) pkg> test
    Testing FinEtoolsAcoustics
  Resolving package versions...
-Test Summary: | Pass  Total
-Acoustics     |   25     25
- 53.500866 seconds (104.17 M allocations: 8.592 GiB, 4.88% gc time)
-   Testing FinEtoolsAcoustics tests passed
+ Test Summary: | Pass  Total     Time
+ Acoustics 1   |   25     25  1m10.2s
+  70.286571 seconds (74.83 M allocations: 7.815 GiB, 3.19% gc time, 81.72% compilation time)                                     
+ Test Summary: | Pass  Total  Time
+ Acoustics 2   |    8      8  2.3s
+   2.324093 seconds (3.39 M allocations: 371.492 MiB, 4.91% gc time, 81.52% compilation time)                                    
+ Test Summary:  | Pass  Total  Time
+ Vibroacoustics |   18     18  1.4s
+   1.393111 seconds (538.42 k allocations: 36.629 MiB, 1.18% gc time, 96.98% compilation time)                                   
+      Testing FinEtoolsAcoustics tests passed        
 ```
 
 ## Examples

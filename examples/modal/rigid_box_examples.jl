@@ -32,10 +32,11 @@ function rigid_box_Q4_example()
     femm = FEMMAcoust(IntegDomain(fes, GaussRule(2, 2)),
     MatAcoustFluid(bulk,rho))
     
-    S = acousticstiffness(femm, geom, P);
-    C = acousticmass(femm, geom, P);
-    
-    d, v, nconv = eigs(C+OmegaShift*S, S; nev=neigvs, which=:SM, explicittransform=:none)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+
+    d,v,nev,nconv = eigs(Ka+OmegaShift*Ma, Ma; nev=neigvs, which=:SM, explicittransform=:none)
+
     d = d .- OmegaShift;
     v = real.(v)
     fs=real(sqrt.(complex(d)))./(2*pi)

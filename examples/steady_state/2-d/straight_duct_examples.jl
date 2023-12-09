@@ -40,8 +40,8 @@ function straight_duct_Q8_example()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, GaussRule(2, 3)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    S  =  shouldbemass(femm, geom, P);
+    C  =  shouldbestiffness(femm, geom, P);
     
     
     E10femm  =  FEMMAcoustSurf(IntegDomain(subset(bfes,L10),GaussRule(1, 3)), material)
@@ -116,8 +116,8 @@ function straight_duct_T3_example()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, TriRule(1)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    S  =  shouldbemass(femm, geom, P);
+    C  =  shouldbestiffness(femm, geom, P);
     
     
     E10femm  =  FEMMAcoustSurf(IntegDomain(subset(bfes,L10),GaussRule(1, 2)), material)

@@ -18,8 +18,12 @@ function _run_transdec_pool(name, neigvs = 200, save_vtks = false, modelist = []
 
     t0 = time()
 
-    # Hexahedral mesh
-    mesh = import_ABAQUS(joinpath(@__DIR__, "../data", "transdec-pool-intact-quarter.inp"))
+    data = joinpath(dirname(@__FILE__()), "../data")
+    input = "transdec-pool-intact-quarter.inp"
+    if !isfile(joinpath(data, input))
+        success(run(`unzip -qq -d $(data) $(joinpath(data, "data.zip"))`; wait = true))
+    end
+    mesh = import_ABAQUS(joinpath(data, input))
     fens = mesh["fens"]
     fes = mesh["fesets"][1]
 
@@ -90,8 +94,8 @@ function _run_transdec_pool(name, neigvs = 200, save_vtks = false, modelist = []
     true
 end #
 
-function transdec_pool_modal()
-    _run_transdec_pool("transdec_pool_modal", 1000, false)
+function transdec_pool_modal(neigvs = 20)
+    _run_transdec_pool("transdec_pool_modal", neigvs, false)
 end
 
 function allrun()
