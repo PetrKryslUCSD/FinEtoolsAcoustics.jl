@@ -1,5 +1,6 @@
 module soft_box_examples
 using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked
 using FinEtoolsAcoustics
 import Arpack: eigs
 
@@ -32,10 +33,11 @@ function soft_box_Q4_example()
     femm = FEMMAcoust(IntegDomain(fes, GaussRule(2, 2)),
     MatAcoustFluid(bulk,rho))
     
-    S = acousticstiffness(femm, geom, P);
-    C = acousticmass(femm, geom, P);
-    
-    d,v,nev,nconv =eigs(C, S; nev=neigvs, which=:SM, explicittransform=:none)
+    Ma = acousticmass(femm, geom, P);
+    Ka = acousticstiffness(femm, geom, P);
+    Ma_ff = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[:ff]
+    Ka_ff = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[:ff]
+    d,v,nev,nconv = eigs(Ka_ff, Ma_ff; nev=neigvs, which=:SM, explicittransform=:none)
     v = real.(v)
     fs=real(sqrt.(complex(d)))./(2*pi)
     println("Eigenvalues: $fs [Hz]")
