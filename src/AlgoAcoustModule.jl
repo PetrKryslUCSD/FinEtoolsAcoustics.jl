@@ -5,9 +5,18 @@ Module for linear acoustics algorithms.
 """
 module AlgoAcoustModule
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using FinEtools.FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using FinEtools.AlgoBaseModule: dcheck!, matrix_blocked, vector_blocked
-using FinEtools.FieldModule: ndofs, setebc!, numberdofs!, applyebc!, scattersysvec!, nfreedofs, nalldofs, gathersysvec
+using FinEtools.FieldModule:
+    ndofs,
+    setebc!,
+    numberdofs!,
+    applyebc!,
+    scattersysvec!,
+    nfreedofs,
+    nalldofs,
+    gathersysvec
 using FinEtools.NodalFieldModule: NodalField, nnodes
 using FinEtools.FEMMBaseModule: associategeometry!, distribloads
 using ..FEMMAcoustModule: acousticstiffness, acousticmass
@@ -70,37 +79,37 @@ function steadystate(modeldata::FDataDict)
     dcheck!(modeldata, modeldata_recognized_keys)
 
     # Extract the nodes
-    fens = get(()->error("Must get fens!"), modeldata, "fens")
+    fens = get(() -> error("Must get fens!"), modeldata, "fens")
 
     # Construct the geometry field
     geom = NodalField(fens.xyz)
 
     # Construct the acoustic pressure field
-    P = NodalField(zeros(FCplxFlt,size(fens.xyz,1),1))
+    P = NodalField(zeros(FCplxFlt, size(fens.xyz, 1), 1))
 
     # The following properties are the same for all regions and all boundaries (ABC)
-    omega = get(()->error("Must get angular frequency!"), modeldata, "omega");
+    omega = get(() -> error("Must get angular frequency!"), modeldata, "omega")
 
     # Apply the essential boundary conditions on the acoustic pressure field
-    essential_bcs = get(modeldata, "essential_bcs", nothing);
+    essential_bcs = get(modeldata, "essential_bcs", nothing)
     if (essential_bcs !== nothing)
         for j in eachindex(essential_bcs)
             ess = essential_bcs[j]
             dcheck!(ess, essential_bcs_recognized_keys)
-            fenids = get(()->error("Must get node list!"), ess, "node_list");
-            pressure = get(ess, "pressure", nothing);
-            Pfixed = zeros(FCplxFlt,length(fenids)); # default is zero pressure
+            fenids = get(() -> error("Must get node list!"), ess, "node_list")
+            pressure = get(ess, "pressure", nothing)
+            Pfixed = zeros(FCplxFlt, length(fenids)) # default is zero pressure
             if (pressure !== nothing)
                 if (typeof(pressure) <: Function) # pressure supplied through function
                     for k = 1:length(fenids)
-                        Pfixed[k] = pressure(geom.values[fenids[k],:])[1];
+                        Pfixed[k] = pressure(geom.values[fenids[k], :])[1]
                     end
                 else # pressure given as  a constant
-                    fill!(Pfixed, pressure);
+                    fill!(Pfixed, pressure)
                 end
             end
-            setebc!(P, fenids[:], true, 1, Pfixed);
-            applyebc!(P);
+            setebc!(P, fenids[:], true, 1, Pfixed)
+            applyebc!(P)
         end
     end
 
@@ -112,49 +121,50 @@ function steadystate(modeldata::FDataDict)
 
     # Construct the system acoustic mass and stiffness matrix
     # and the absorbing boundary condition (ABC) matrix
-    Ka = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
-    Ma = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
-    D = spzeros(nalldofs(P), nalldofs(P)); # (all zeros, for the moment)
-    regions = get(()->error("Must get regions!"), modeldata, "regions")
+    Ka = spzeros(nalldofs(P), nalldofs(P)) # (all zeros, for the moment)
+    Ma = spzeros(nalldofs(P), nalldofs(P)) # (all zeros, for the moment)
+    D = spzeros(nalldofs(P), nalldofs(P)) # (all zeros, for the moment)
+    regions = get(() -> error("Must get regions!"), modeldata, "regions")
     for i in eachindex(regions)
         region = regions[i]
         dcheck!(region, regions_recognized_keys)
-        femm = get(()->error("Must get femm for the region!"), region, "femm");
+        femm = get(() -> error("Must get femm for the region!"), region, "femm")
         # Add up all the acoustic mass matrices for all the regions
-        Ka = Ka + acousticstiffness(femm, geom, P);
-        Ma  = Ma + acousticmass(femm, geom, P);
+        Ka = Ka + acousticstiffness(femm, geom, P)
+        Ma = Ma + acousticmass(femm, geom, P)
     end
 
     # Compute the ABC matrices
-    ABCs = get(modeldata, "ABCs", nothing);
+    ABCs = get(modeldata, "ABCs", nothing)
     if (ABCs != nothing)
         for j = 1:length(ABCs)
             ABC = ABCs[j]
             dcheck!(ABC, ABCs_recognized_keys)
-            femm = get(()->error("Must get femm for the ABC!"), ABC, "femm");
-            D = D + acousticABC(femm, geom, P);
+            femm = get(() -> error("Must get femm for the ABC!"), ABC, "femm")
+            D = D + acousticABC(femm, geom, P)
         end
     end
 
     # Process the flux boundary condition:
     # dP/dn=-rho*a ... The normal derivative of the pressure in terms of the acceleration
-    flux_bcs = get(modeldata, "flux_bcs", nothing);
+    flux_bcs = get(modeldata, "flux_bcs", nothing)
     if (flux_bcs != nothing)
         for j = 1:length(flux_bcs)
             fluxbc = flux_bcs[j]
             dcheck!(fluxbc, flux_bcs_recognized_keys)
-            normal_flux = get(()->error("Must get normal flux value!"), fluxbc, "normal_flux");
+            normal_flux =
+                get(() -> error("Must get normal flux value!"), fluxbc, "normal_flux")
             if (typeof(normal_flux) <: Function)
-                fi = ForceIntensity(FCplxFlt, 1, normal_flux);
+                fi = ForceIntensity(FCplxFlt, 1, normal_flux)
             else
                 if typeof(normal_flux) <: AbstractArray
                 else
                     normal_flux = FCplxFlt[normal_flux]
                 end
-                fi = ForceIntensity(normal_flux);
+                fi = ForceIntensity(normal_flux)
             end
-            femm = get(()->error("Must get femm for the flux BC!"), fluxbc, "femm");
-            F = F + distribloads(femm, geom, P, fi, 2);
+            femm = get(() -> error("Must get femm for the flux BC!"), fluxbc, "femm")
+            F = F + distribloads(femm, geom, P, fi, 2)
         end
     end
 
@@ -165,19 +175,19 @@ function steadystate(modeldata::FDataDict)
     F_f, F_d = vector_blocked(F, nfreedofs(P))[(:f, :d)]
 
     # Loads due to the essential boundary conditions on the pressure field
-    essential_bcs = get(modeldata, "essential_bcs", nothing);
+    essential_bcs = get(modeldata, "essential_bcs", nothing)
     if (essential_bcs != nothing)
         F_f = F_f - Ka_fd * F_d - Ma_fd * F_d
     end
 
     # Solve for the pressures
-    A = lu((-omega^2*Ma_ff +omega*1.0im*D_ff + Ka_ff));
-    vP = A\F_f;
+    A = lu((-omega^2 * Ma_ff + omega * 1.0im * D_ff + Ka_ff))
+    vP = A \ F_f
     scattersysvec!(P, vP[:])
 
     # Update the model data
-    setindex!(modeldata, geom, "geom");
-    setindex!(modeldata, P, "P");
+    setindex!(modeldata, geom, "geom")
+    setindex!(modeldata, P, "P")
     return modeldata            # ... And return the updated model data
 end
 

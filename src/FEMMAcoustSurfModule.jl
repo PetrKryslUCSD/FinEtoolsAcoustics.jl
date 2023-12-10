@@ -8,7 +8,8 @@ module FEMMAcoustSurfModule
 
 import Base.Complex
 
-using FinEtools.FTypesModule: FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
+using FinEtools.FTypesModule:
+    FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
 using FinEtools.FENodeSetModule: FENodeSet
 using FinEtools.FESetModule: AbstractFESet, gradN!, nodesperelem, manifdim
 using ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
@@ -18,9 +19,17 @@ using FinEtools.FieldModule: ndofs, gatherdofnums!, gathervalues_asmat!, nalldof
 using FinEtools.NodalFieldModule: NodalField
 using FinEtools.SurfaceNormalModule: SurfaceNormal, updatenormal!
 using FinEtools.GeneralFieldModule: GeneralField
-using FinEtools.AssemblyModule: AbstractSysvecAssembler, AbstractSysmatAssembler, SysmatAssemblerSparseSymm, startassembly!, assemble!, makematrix!, SysmatAssemblerSparse
+using FinEtools.AssemblyModule:
+    AbstractSysvecAssembler,
+    AbstractSysmatAssembler,
+    SysmatAssemblerSparseSymm,
+    startassembly!,
+    assemble!,
+    makematrix!,
+    SysmatAssemblerSparse
 using FinEtools.FEMMBaseModule: AbstractFEMM, bilform_dot
-using FinEtools.MatrixUtilityModule: add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
+using FinEtools.MatrixUtilityModule:
+    add_mggt_ut_only!, add_nnt_ut_only!, complete_lt!, locjac!
 using LinearAlgebra: norm, cross
 using FinEtools.DataCacheModule: DataCache
 
@@ -29,7 +38,7 @@ using FinEtools.DataCacheModule: DataCache
 
 Class for linear acoustics finite element modeling machine.
 """
-mutable struct FEMMAcoustSurf{ID<:IntegDomain, M} <: AbstractFEMM
+mutable struct FEMMAcoustSurf{ID<:IntegDomain,M} <: AbstractFEMM
     integdomain::ID # geometry data
     material::M # material object
 end
@@ -47,18 +56,27 @@ Compute the acoustic ABC (Absorbing Boundary Condition) matrix.
 - `geom` = geometry field
 - `Pdot` = rate of the acoustic (perturbation) pressure field
 """
-function acousticABC(self::FEMMAcoustSurf, assembler::A, geom::NodalField, Pdot::NodalField{T}) where {T<:Number, A<:AbstractSysmatAssembler}
-    bulk_modulus  =  bulkmodulus(self.material);
-    mass_density  =  massdensity(self.material);
-    c  =  sqrt(bulk_modulus/mass_density); # sound speed
-    oc = 1.0/c;
-    return bilform_dot(self, assembler, geom, Pdot, DataCache(oc); m=2)
+function acousticABC(
+    self::FEMMAcoustSurf,
+    assembler::A,
+    geom::NodalField,
+    Pdot::NodalField{T},
+) where {T<:Number,A<:AbstractSysmatAssembler}
+    bulk_modulus = bulkmodulus(self.material)
+    mass_density = massdensity(self.material)
+    c = sqrt(bulk_modulus / mass_density) # sound speed
+    oc = 1.0 / c
+    return bilform_dot(self, assembler, geom, Pdot, DataCache(oc); m = 2)
 end
 
-function acousticABC(self::FEMMAcoustSurf, geom::NodalField, Pdot::NodalField{T}) where {T<:Number}
+function acousticABC(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    Pdot::NodalField{T},
+) where {T<:Number}
     # Were we supplied assembler object?  If not make a default.
-    assembler  =  SysmatAssemblerSparseSymm();
-    return acousticABC(self, assembler, geom, Pdot);
+    assembler = SysmatAssemblerSparseSymm()
+    return acousticABC(self, assembler, geom, Pdot)
 end
 
 """
@@ -77,52 +95,70 @@ on the surface into the resultant force acting on the surface.
 - `P` = acoustic (perturbation) pressure field
 - `Force` = field for the force resultant
 """
-function pressure2resultantforce(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Force::GeneralField, surfacenormal::SurfaceNormal) where {T<:Number, A<:AbstractSysmatAssembler}
+function pressure2resultantforce(
+    self::FEMMAcoustSurf,
+    assembler::A,
+    geom::NodalField,
+    P::NodalField{T},
+    Force::GeneralField,
+    surfacenormal::SurfaceNormal,
+) where {T<:Number,A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
-    nfes = count(fes); # number of finite elements in the set
-    ndn = ndofs(P); # number of degrees of freedom per node
-    nne =  nodesperelem(fes); # number of nodes per element
-    sdim =  ndofs(geom);            # number of space dimensions
-    mdim = manifdim(fes);     # manifold dimension of the element
-    edim = ndn*nne;          # dimension of the element matrix
+    nfes = count(fes) # number of finite elements in the set
+    ndn = ndofs(P) # number of degrees of freedom per node
+    nne = nodesperelem(fes) # number of nodes per element
+    sdim = ndofs(geom)            # number of space dimensions
+    mdim = manifdim(fes)     # manifold dimension of the element
+    edim = ndn * nne          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     transposedNs = [reshape(N, 1, nne) for N in Ns]
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
-    Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- used as a buffer
-    coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- used as a buffer
-    rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- used as a buffer
-    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- used as a buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of Element coordinates
+    Ge = fill(zero(FFlt), 3, nne) # element coupling matrix -- used as a buffer
+    coldofnums = zeros(FInt, 1, edim) # degree of freedom array -- used as a buffer
+    rowdofnums = zeros(FInt, 1, 3) # degree of freedom array -- used as a buffer
+    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- used as a buffer
     n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
-    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- used as a buffer
-    gatherdofnums!(Force, rowdofnums, [1 2 3]);# retrieve degrees of freedom
-    startassembly!(assembler, 3*edim*count(fes), 3, nalldofs(P));
+    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- used as a buffer
+    gatherdofnums!(Force, rowdofnums, [1 2 3])# retrieve degrees of freedom
+    startassembly!(assembler, 3 * edim * count(fes), 3, nalldofs(P))
     for i = 1:count(fes) # Loop over elements
-        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-        fill!(Ge, 0.0); # Initialize element matrix
+        gathervalues_asmat!(geom, ecoords, fes.conn[i])
+        fill!(Ge, 0.0) # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j])
             @assert Jac != 0.0
-            n = updatenormal!(surfacenormal, loc, J, i, j);
-            ffactor = (Jac*w[j])
-            Ge = Ge + (ffactor*n)*transposedNs[j]
+            n = updatenormal!(surfacenormal, loc, J, i, j)
+            ffactor = (Jac * w[j])
+            Ge = Ge + (ffactor * n) * transposedNs[j]
         end # Loop over quadrature points
-        gatherdofnums!(P, coldofnums, fes.conn[i]);# retrieve degrees of freedom
-        assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
+        gatherdofnums!(P, coldofnums, fes.conn[i])# retrieve degrees of freedom
+        assemble!(assembler, Ge, rowdofnums, coldofnums)# assemble unsymmetric matrix
     end # Loop over elements
-    return makematrix!(assembler);
+    return makematrix!(assembler)
 end
 
-function pressure2resultantforce(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Force::GeneralField) where {T<:Number}
-    assembler  =  SysmatAssemblerSparse();
-    sdim =  ndofs(geom);   
+function pressure2resultantforce(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    P::NodalField{T},
+    Force::GeneralField,
+) where {T<:Number}
+    assembler = SysmatAssemblerSparse()
+    sdim = ndofs(geom)
     return pressure2resultantforce(self, assembler, geom, P, Force, SurfaceNormal(sdim))
 end
 
-function pressure2resultantforce(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Force::GeneralField, surfacenormal::SurfaceNormal) where {T<:Number}
-    assembler  =  SysmatAssemblerSparse();
+function pressure2resultantforce(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    P::NodalField{T},
+    Force::GeneralField,
+    surfacenormal::SurfaceNormal,
+) where {T<:Number}
+    assembler = SysmatAssemblerSparse()
     return pressure2resultantforce(self, assembler, geom, P, Force, surfacenormal)
 end
 
@@ -143,51 +179,80 @@ to the CG.
 - `P` = acoustic (perturbation) pressure field
 - `Torque` = field for the torque resultant
 """
-function pressure2resultanttorque(self::FEMMAcoustSurf, assembler::A, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec, surfacenormal::SurfaceNormal) where {T<:Number,  A<:AbstractSysmatAssembler}
+function pressure2resultanttorque(
+    self::FEMMAcoustSurf,
+    assembler::A,
+    geom::NodalField,
+    P::NodalField{T},
+    Torque::GeneralField,
+    CG::FFltVec,
+    surfacenormal::SurfaceNormal,
+) where {T<:Number,A<:AbstractSysmatAssembler}
     fes = self.integdomain.fes
     # Constants
-    nfes = count(fes); # number of finite elements in the set
-    ndn = ndofs(P); # number of degrees of freedom per node
-    nne =  nodesperelem(fes); # number of nodes per element
-    sdim =  ndofs(geom);            # number of space dimensions
-    mdim = manifdim(fes);     # manifold dimension of the element
-    edim = ndn*nne;          # dimension of the element matrix
+    nfes = count(fes) # number of finite elements in the set
+    ndn = ndofs(P) # number of degrees of freedom per node
+    nne = nodesperelem(fes) # number of nodes per element
+    sdim = ndofs(geom)            # number of space dimensions
+    mdim = manifdim(fes)     # manifold dimension of the element
+    edim = ndn * nne          # dimension of the element matrix
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     transposedNs = [reshape(N, 1, nne) for N in Ns]
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
-    Ge = fill(zero(FFlt), 3, nne); # element coupling matrix -- a buffer
-    coldofnums = zeros(FInt, 1, edim); # degree of freedom array -- a buffer
-    rowdofnums = zeros(FInt, 1, 3); # degree of freedom array -- a buffer
-    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- a buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of Element coordinates
+    Ge = fill(zero(FFlt), 3, nne) # element coupling matrix -- a buffer
+    coldofnums = zeros(FInt, 1, edim) # degree of freedom array -- a buffer
+    rowdofnums = zeros(FInt, 1, 3) # degree of freedom array -- a buffer
+    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- a buffer
     n = fill(zero(FFlt), 3) # normal vector -- a buffer
-    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- a buffer
-    gatherdofnums!(Torque, rowdofnums, [1 2 3]);# retrieve degrees of freedom
-    startassembly!(assembler, 3*edim*count(fes), 3, nalldofs(P));
-    for i = 1:count(fes) # Loop over elements
-        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-        fill!(Ge, 0.0); # Initialize element matrix
-        for j = 1:npts # Loop over quadrature points
+    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- a buffer
+    gatherdofnums!(Torque, rowdofnums, [1 2 3])# retrieve degrees of freedom
+    startassembly!(assembler, 3 * edim * count(fes), 3, nalldofs(P))
+    for i in eachindex(fes) # Loop over elements
+        gathervalues_asmat!(geom, ecoords, fes.conn[i])
+        fill!(Ge, 0.0) # Initialize element matrix
+        for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-            n = updatenormal!(surfacenormal, loc, J, i, j);
-            ffactor = (Jac*w[j])
-            Ge = Ge + (ffactor*cross(vec(vec(loc)-CG), n))*transposedNs[j]
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j])
+            n = updatenormal!(surfacenormal, loc, J, i, j)
+            ffactor = (Jac * w[j])
+            Ge = Ge + (ffactor * cross(vec(vec(loc) - CG), n)) * transposedNs[j]
         end # Loop over quadrature points
-        gatherdofnums!(P, coldofnums, fes.conn[i]);# retrieve degrees of freedom
-        assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
+        gatherdofnums!(P, coldofnums, fes.conn[i])# retrieve degrees of freedom
+        assemble!(assembler, Ge, rowdofnums, coldofnums)# assemble unsymmetric matrix
     end # Loop over elements
-    return makematrix!(assembler);
+    return makematrix!(assembler)
 end
 
-function pressure2resultanttorque(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec) where {T<:Number}
-    assembler  =  SysmatAssemblerSparse();
-    sdim =  ndofs(geom);   
-    return pressure2resultanttorque(self, assembler, geom, P, Torque, CG, SurfaceNormal(sdim))
+function pressure2resultanttorque(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    P::NodalField{T},
+    Torque::GeneralField,
+    CG::FFltVec,
+) where {T<:Number}
+    assembler = SysmatAssemblerSparse()
+    sdim = ndofs(geom)
+    return pressure2resultanttorque(
+        self,
+        assembler,
+        geom,
+        P,
+        Torque,
+        CG,
+        SurfaceNormal(sdim),
+    )
 end
 
-function pressure2resultanttorque(self::FEMMAcoustSurf, geom::NodalField, P::NodalField{T}, Torque::GeneralField, CG::FFltVec, surfacenormal::SurfaceNormal) where {T<:Number}
-    assembler  =  SysmatAssemblerSparse();
+function pressure2resultanttorque(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    P::NodalField{T},
+    Torque::GeneralField,
+    CG::FFltVec,
+    surfacenormal::SurfaceNormal,
+) where {T<:Number}
+    assembler = SysmatAssemblerSparse()
     return pressure2resultanttorque(self, assembler, geom, P, Torque, CG, surfacenormal)
 end
 
@@ -214,47 +279,65 @@ the surface.
     given the same numbers as the serial numbers of the finite elements in
     the set.
 """
-function acousticcouplingpanels(self::FEMMAcoustSurf, assembler::A, geom::NodalField, u::NodalField{T}, surfacenormal::SurfaceNormal) where {A<:AbstractSysmatAssembler, T}
+function acousticcouplingpanels(
+    self::FEMMAcoustSurf,
+    assembler::A,
+    geom::NodalField,
+    u::NodalField{T},
+    surfacenormal::SurfaceNormal,
+) where {A<:AbstractSysmatAssembler,T}
     fes = self.integdomain.fes
     # Constants
-    nne =  nodesperelem(fes); # number of nodes per element
-    sdim = ndofs(geom);            # number of space dimensions
-    mdim = manifdim(fes);     # manifold dimension of the element
+    nne = nodesperelem(fes) # number of nodes per element
+    sdim = ndofs(geom)            # number of space dimensions
+    mdim = manifdim(fes)     # manifold dimension of the element
     # Precompute basis f. values + basis f. gradients wrt parametric coor
-    npts, Ns, gradNparams, w, pc  =  integrationdata(self.integdomain);
+    npts, Ns, gradNparams, w, pc = integrationdata(self.integdomain)
     transposedNs = [reshape(N, 1, nne) for N in Ns]
-    ecoords = fill(zero(FFlt), nne, ndofs(geom)); # array of Element coordinates
-    coldofnums = zeros(FInt, 1, 1); # degree of freedom array -- a buffer
-    rowdofnums = zeros(FInt, 1, sdim*nne); # degree of freedom array -- a buffer
-    loc = fill(zero(FFlt), 1, sdim); # quadrature point location -- a buffer
+    ecoords = fill(zero(FFlt), nne, ndofs(geom)) # array of Element coordinates
+    coldofnums = zeros(FInt, 1, 1) # degree of freedom array -- a buffer
+    rowdofnums = zeros(FInt, 1, sdim * nne) # degree of freedom array -- a buffer
+    loc = fill(zero(FFlt), 1, sdim) # quadrature point location -- a buffer
     n = fill(zero(FFlt), sdim) # normal vector -- a buffer
-    J = fill(zero(FFlt), sdim, mdim); # Jacobian matrix -- a buffer
-    Ge = fill(zero(FFlt), sdim*nne, 1); # Element matrix -- a buffer
+    J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- a buffer
+    Ge = fill(zero(FFlt), sdim * nne, 1) # Element matrix -- a buffer
     startassembly!(assembler, prod(size(Ge)) * count(fes), nalldofs(u), count(fes))
     for i = 1:count(fes) # Loop over elements
-        gathervalues_asmat!(geom, ecoords, fes.conn[i]);
-        fill!(Ge, 0.0); # Initialize element matrix
+        gathervalues_asmat!(geom, ecoords, fes.conn[i])
+        fill!(Ge, 0.0) # Initialize element matrix
         for j = 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
-            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j]);
-            n = updatenormal!(surfacenormal, loc, J, i, j);
-            Ge = Ge + (Jac*w[j])*reshape(reshape(n, sdim, 1)*transposedNs[j], size(Ge, 1), size(Ge, 2))
+            Jac = Jacobiansurface(self.integdomain, J, loc, fes.conn[i], Ns[j])
+            n = updatenormal!(surfacenormal, loc, J, i, j)
+            Ge =
+                Ge +
+                (Jac * w[j]) *
+                reshape(reshape(n, sdim, 1) * transposedNs[j], size(Ge, 1), size(Ge, 2))
         end # Loop over quadrature points
         coldofnums[1] = i
-        gatherdofnums!(u, rowdofnums, fes.conn[i]);# retrieve degrees of freedom
-        assemble!(assembler, Ge, rowdofnums, coldofnums);# assemble unsymmetric matrix
+        gatherdofnums!(u, rowdofnums, fes.conn[i])# retrieve degrees of freedom
+        assemble!(assembler, Ge, rowdofnums, coldofnums)# assemble unsymmetric matrix
     end # Loop over elements
-    return makematrix!(assembler);
+    return makematrix!(assembler)
 end
 
-function acousticcouplingpanels(self::FEMMAcoustSurf, geom::NodalField, u::NodalField{T}) where {T}
-    assembler = SysmatAssemblerSparse(); # The matrix is not symmetric
-    sdim =  ndofs(geom);   
+function acousticcouplingpanels(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    u::NodalField{T},
+) where {T}
+    assembler = SysmatAssemblerSparse() # The matrix is not symmetric
+    sdim = ndofs(geom)
     return acousticcouplingpanels(self, assembler, geom, u, SurfaceNormal(sdim))
 end
 
-function acousticcouplingpanels(self::FEMMAcoustSurf, geom::NodalField, u::NodalField{T}, surfacenormal::SurfaceNormal) where {T}
-    assembler = SysmatAssemblerSparse(); # The matrix is not symmetric
+function acousticcouplingpanels(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    u::NodalField{T},
+    surfacenormal::SurfaceNormal,
+) where {T}
+    assembler = SysmatAssemblerSparse() # The matrix is not symmetric
     return acousticcouplingpanels(self, assembler, geom, u, surfacenormal)
 end
 

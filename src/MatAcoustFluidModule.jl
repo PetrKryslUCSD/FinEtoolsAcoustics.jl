@@ -13,8 +13,8 @@ import FinEtools.MatModule: AbstractMat
 Type for acoustic fluid material.
 """
 struct MatAcoustFluid{T} <: AbstractMat
-	bulk_modulus::T;# Bulk modulus
-	mass_density::T;# Mass density
+    bulk_modulus::T# Bulk modulus
+    mass_density::T# Mass density
 end
 
 """
@@ -23,7 +23,7 @@ end
 Return the bulk modulus.
 """
 function bulkmodulus(self::MatAcoustFluid)
-	return self.bulk_modulus
+    return self.bulk_modulus
 end
 
 end
