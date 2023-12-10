@@ -75,8 +75,8 @@ function sphere_dipole_transient()
     material = MatAcoustFluid(bulk,rho)
     femm  =  FEMMAcoust(IntegDomain(fes, GaussRule(3, 2)), material)
     
-    S  =  acousticstiffness(femm, geom, P);
-    C  =  acousticmass(femm, geom, P);
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
     
     abcfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, louter), GaussRule(2, 2)), material)
     D  =  acousticABC(abcfemm, geom, P);
@@ -86,6 +86,7 @@ function sphere_dipole_transient()
         n = cross(J[:,1],J[:,2]);
         n = vec(n/norm(n));
         dpdn[1] = -rho*a_amplitude*sin(omega*t)*n[1]
+        return dpdn
     end
     
     dipfemm  =  FEMMAcoustSurf(IntegDomain(subset(bfes, linner), GaussRule(2, 2)), material)
@@ -100,19 +101,19 @@ function sphere_dipole_transient()
     t = 0.0;
     P1 = deepcopy(P0);
     
-    fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
+    fi  =  ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label, qpid)->dipole(dpdn, xyz, J, label, t));
     La0 = distribloads(dipfemm, geom, P1, fi, 2);
     
-    A = (2.0/dt)*S + D + (dt/2.)*C;
+    A = (2.0/dt)*Ma + D + (dt/2.)*Ka;
     
     step =0;
     while t <= tfinal
       step = step  + 1;
       println("Time $t ($(step)/$(round(tfinal/dt)+1))")
       t = t+dt;
-      fi  = ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label)->dipole(dpdn, xyz, J, label, t));
+      fi  = ForceIntensity(FCplxFlt, 1, (dpdn, xyz, J, label, qpid)->dipole(dpdn, xyz, J, label, t));
       La1 = distribloads(dipfemm, geom, P1, fi, 2);
-      vQ1 = A\((2/dt)*(S*vQ0)-D*vQ0-C*(2*vP0+(dt/2)*vQ0)+La0+La1);
+      vQ1 = A\((2/dt)*(Ma*vQ0)-D*vQ0-Ka*(2*vP0+(dt/2)*vQ0)+La0+La1);
       vP1 = vP0 + (dt/2)*(vQ0+vQ1);
       vP0 = vP1;
       vQ0 = vQ1;
@@ -137,4 +138,8 @@ function allrun()
     return true
 end # function allrun
 
+@info "All examples may be executed with "
+println("using .$(@__MODULE__); $(@__MODULE__).allrun()")
+
 end # module baffled_piston_examples
+nothing

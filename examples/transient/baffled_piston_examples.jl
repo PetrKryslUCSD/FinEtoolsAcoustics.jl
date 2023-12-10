@@ -74,12 +74,12 @@ function baffled_piston_H8_transient()
 	applyebc!(P);
 	numberdofs!(P);
 
-	S  =  acousticstiffness(femm, geom, P);
-	C  =  acousticmass(femm, geom, P);
+    Ma =  acousticmass(femm, geom, P);
+    Ka =  acousticstiffness(femm, geom, P);
 
-    S_ff, S_fd = matrix_blocked(S, nfreedofs(P))
-    C_ff, C_fd = matrix_blocked(C, nfreedofs(P))
-    D_ff = (2.0/dt)*S_ff +(dt/2.0)*C_ff;
+    Ma_ff, Ma_fd = matrix_blocked(Ma, nfreedofs(P))
+    Ka_ff, Ka_fd = matrix_blocked(Ka, nfreedofs(P))
+    D_ff = (2.0/dt)*Ma_ff +(dt/2.0)*Ka_ff;
 
 	P0 = deepcopy(P)
 	Pdd0 = deepcopy(P)
@@ -109,11 +109,11 @@ function baffled_piston_H8_transient()
 		P1.values[piston_fenids,1] .= P_piston*sin(omega*t)
 		Pdd1.values[piston_fenids,1] .= P_piston*(-omega^2)*sin(omega*t)
 		TMPF.values = P0.values + P1.values
-        F_f .= C_fd * gathersysvec!(TMPF, vTMP_d, :d)
+        F_f .= Ka_fd * gathersysvec!(TMPF, vTMP_d, :d)
 		TMPF.values = Pdd0.values + Pdd1.values
-        F_f .+= S_fd * gathersysvec!(TMPF, vTMP_d, :d)
+        F_f .+= Ma_fd * gathersysvec!(TMPF, vTMP_d, :d)
 		# println("$(norm(F))")
-		vPd1 = D_ff \ ((2/dt)*(S_ff*vPd0) - C_ff*(2*vP0+(dt/2)*vPd0) + F_f);
+		vPd1 = D_ff \ ((2/dt)*(Ma_ff*vPd0) - Ka_ff*(2*vP0+(dt/2)*vPd0) + F_f);
 		vP1 = vP0 + (dt/2)*(vPd0+vPd1);
 		scattersysvec!(P1, vP1); # store current pressure
 		# Swap variables for the next step
