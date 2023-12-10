@@ -13,6 +13,7 @@ using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
+- 12/10/2023: Format source; add an example from a Fahy textbook.
 - 12/08/2023: Unify terminology with the acoustics literature.
 - 06/22/2023: With the exception of the transient examples, examples work.
 - 06/21/2023: Update for FinEtools 7.0.
