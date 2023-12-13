@@ -1689,3 +1689,140 @@ end
 end
 using .mmAnnularmAlgo
 mmAnnularmAlgo.test()
+
+module mmgradient_1
+using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
+using FinEtoolsAcoustics
+using FinEtools.MeshExportModule.VTK: vtkexportmesh, T3, vtkexportvectors
+using Test
+import LinearAlgebra: cholesky
+
+function h20_mesh()
+    Lx = 0.414 * phun("m") # dimension
+    Ly = 0.314 * phun("m") # dimension
+    Lz = 0.360 * phun("m") # dimension
+    n = 3
+    fens, fes = H8block(Lx, Ly, Lz, n, n, n) # Mesh
+    fens, fes = H8toH20(fens, fes)
+    fens, fes
+end
+
+function h8_mesh()
+    Lx = 0.414 * phun("m") # dimension
+    Ly = 0.314 * phun("m") # dimension
+    Lz = 0.360 * phun("m") # dimension
+    n = 10
+    fens, fes = H8block(Lx, Ly, Lz, n, n, n) # Mesh
+    fens, fes
+end
+
+const meshfun = Dict("h20" => h20_mesh, "h8" => h8_mesh)
+
+function test(name)
+    rho = 1.21 * phun("kg/m^3") # mass density
+    c = 343.0 * phun("m/s")  # sound speed
+    bulk = c^2 * rho
+    alpha, beta, gamma = 0.13, -0.3, 0.1333
+    pfun(x) = alpha * x[1] + beta * x[2] + gamma * x[3]
+
+    fens, fes = meshfun[name]()
+
+    geom = NodalField(fens.xyz)
+    P = NodalField(reshape([pfun(fens.xyz[i, :]) for i in eachindex(fens)], count(fens), 1))
+    numberdofs!(P)
+
+    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
+
+    gradP = reshape([alpha, beta, gamma], 1, 3)
+    function inspector(idat, i, conn, xe, out, loc)
+        erro = maximum(abs.(gradP .- out))
+        return erro
+    end
+
+    idat = inspectintegpoints(femm, geom, NodalField([1.0]), P, collect(1:count(fes)), inspector, 0.0, :gradient)
+
+    @test idat  < 1.0e-9 / count(fes)
+    true
+end #
+
+test("h8")
+test("h20")
+
+end # module
+nothing
+
+module mmgradient_2
+using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked, vector_blocked
+using FinEtoolsAcoustics
+using FinEtools.MeshExportModule.VTK: vtkexportmesh, T3, vtkexportvectors
+using Test
+import LinearAlgebra: cholesky
+
+function h20_mesh()
+    Lx = 0.414 * phun("m") # dimension
+    Ly = 0.314 * phun("m") # dimension
+    Lz = 0.360 * phun("m") # dimension
+    n = 3
+    fens, fes = H8block(Lx, Ly, Lz, n, n, n) # Mesh
+    fens, fes = H8toH20(fens, fes)
+    fens, fes
+end
+
+function h8_mesh()
+    Lx = 0.414 * phun("m") # dimension
+    Ly = 0.314 * phun("m") # dimension
+    Lz = 0.360 * phun("m") # dimension
+    n = 10
+    fens, fes = H8block(Lx, Ly, Lz, n, n, n) # Mesh
+    fens, fes
+end
+
+const meshfun = Dict("h20" => h20_mesh, "h8" => h8_mesh)
+
+function test(name)
+    rho = 1.21 * phun("kg/m^3") # mass density
+    c = 343.0 * phun("m/s")  # sound speed
+    bulk = c^2 * rho
+    alpha, beta, gamma = 0.13, -0.3, 0.1333
+    pfun(x) = alpha * x[1] + beta * x[2] + gamma * x[3]
+    gradP = reshape([alpha, beta, gamma], 1, 3)
+
+    fens, fes = meshfun[name]()
+
+    geom = NodalField(fens.xyz)
+    P = NodalField(reshape([pfun(fens.xyz[i, :]) for i in eachindex(fens)], count(fens), 1))
+    numberdofs!(P)
+
+    femm = FEMMAcoust(IntegDomain(fes, GaussRule(3, 3)), MatAcoustFluid(bulk, rho))
+
+    qplocs = []
+    qpgradients = []
+    function inspector(idat, i, conn, xe, out, loc)
+      qplocs, qpgradients = idat
+      push!(qplocs, copy(loc))
+      push!(qpgradients, copy(out))
+      return (qplocs, qpgradients)
+    end
+
+    idat = inspectintegpoints(femm, geom, NodalField([1.0]), P, collect(1:count(fes)), inspector, (qplocs, qpgradients), :gradient)
+    qplocs, qpgradients = idat
+
+    # Test export of vectors of gradient
+    File =  "mmgradient_2-$(name)-vectors.vtk"
+    vtkexportvectors(File, qplocs, [("grad", qpgradients)])
+    try rm(File); catch end
+    File =  "mmgradient_2-$(name).vtk"
+    vtkexportmesh(File, fens, fes)
+    try rm(File); catch end
+
+    true
+end #
+
+test("h8")
+test("h20")
+
+end # module
+nothing
+
