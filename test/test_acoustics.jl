@@ -1740,7 +1740,7 @@ function test(name)
         return erro
     end
 
-    idat = inspectintegpoints(femm, geom, NodalField([1.0]), P, collect(1:count(fes)), inspector, 0.0, :gradient)
+    idat = inspectintegpoints(femm, geom, P, NodalField([1.0]), collect(1:count(fes)), inspector, 0.0, :gradient)
 
     @test idat  < 1.0e-9 / count(fes)
     true
@@ -1806,7 +1806,7 @@ function test(name)
       return (qplocs, qpgradients)
     end
 
-    idat = inspectintegpoints(femm, geom, NodalField([1.0]), P, collect(1:count(fes)), inspector, (qplocs, qpgradients), :gradient)
+    idat = inspectintegpoints(femm, geom, P, NodalField([1.0]), collect(1:count(fes)), inspector, (qplocs, qpgradients), :gradient)
     qplocs, qpgradients = idat
 
     # Test export of vectors of gradient

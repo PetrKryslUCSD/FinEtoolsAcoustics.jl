@@ -279,7 +279,7 @@ version = "7.1.7"
 deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "Test"]
 path = ".."
 uuid = "72171760-8bdd-11e9-0dbf-b3b512e82515"
-version = "3.0.0"
+version = "3.0.3"
 
 [[deps.FinEtoolsDeforLinear]]
 deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "SuiteSparse", "Test"]

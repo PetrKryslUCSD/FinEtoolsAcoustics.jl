@@ -159,11 +159,11 @@ function _buffers1(self::FEMMAcoust,
     sdim = ndofs(geom)   # number of space dimensions
     mdim = manifdim(fes) # manifold dimension of the element
     Kedim = ndn * nne      # dimension of the element matrix
-    ecoords = fill(zero(FT), nne, ndofs(geom)) # array of Element coordinates
+    ecoords = fill(zero(GFT), nne, ndofs(geom)) # array of Element coordinates
     dofnums = fill(zero(IntT), Kedim) # buffer
-    loc = fill(zero(FT), 1, sdim) # buffer
-    J = fill(zero(FT), sdim, mdim) # buffer
-    gradN = fill(zero(FT), nne, mdim) # buffer
+    loc = fill(zero(GFT), 1, sdim) # buffer
+    J = fill(zero(GFT), sdim, mdim) # buffer
+    gradN = fill(zero(GFT), nne, mdim) # buffer
     Pe = fill(zero(FT), nodesperelem(fes)) # nodal pressures -- buffer
     qpgradP = fill(zero(FT), 1, sdim) # Pressure gradient -- buffer
     return ecoords,
@@ -223,7 +223,7 @@ function inspectintegpoints(self::FEMMAcoust,
     # Loop over  all the elements and all the quadrature points within them
     for i in felist # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
-        gathervalues_asvec!(temp, Pe, fes.conn[i])# retrieve element temperatures
+        gathervalues_asvec!(P, Pe, fes.conn[i])# retrieve element temperatures
         for j in 1:npts # Loop over quadrature points
             locjac!(loc, J, ecoords, Ns[j], gradNparams[j])
             Jac = Jacobianvolume(self.integdomain, J, loc, fes.conn[i], Ns[j])
