@@ -55,6 +55,8 @@ Compute the acoustic ABC (Absorbing Boundary Condition) matrix.
 - `assembler`  =  matrix assembler; must be able to assemble unsymmetric matrix
 - `geom` = geometry field
 - `Pdot` = rate of the acoustic (perturbation) pressure field
+
+We assume here that the impedance of this boundary is ``\rho c``.
 """
 function acousticABC(
     self::FEMMAcoustSurf,
@@ -77,6 +79,49 @@ function acousticABC(
     # Were we supplied assembler object?  If not make a default.
     assembler = SysmatAssemblerSparseSymm()
     return acousticABC(self, assembler, geom, Pdot)
+end
+
+
+"""
+    acousticrobin(
+        self::FEMMAcoustSurf,
+        assembler::A,
+        geom::NodalField,
+        Pdot::NodalField{T},
+        impedance
+    ) where {T<:Number,A<:AbstractSysmatAssembler}
+
+Compute the acoustic "Robin boundary condition" (damping) matrix.
+
+# Arguments
+- `self`   =  acoustics model
+- `assembler`  =  matrix assembler; must be able to assemble unsymmetric matrix
+- `geom` = geometry field
+- `Pdot` = rate of the acoustic (perturbation) pressure field
+- `impedance` = acoustic impedance of the boundary
+
+We assume here that the impedance of this boundary is ``\rho c``.
+"""
+function acousticrobin(
+    self::FEMMAcoustSurf,
+    assembler::A,
+    geom::NodalField,
+    Pdot::NodalField{T},
+    impedance
+) where {T<:Number,A<:AbstractSysmatAssembler}
+    mass_density = massdensity(self.material)
+    Y = mass_density / impedance
+    return bilform_dot(self, assembler, geom, Pdot, DataCache(Y); m = 2)
+end
+
+function acousticrobin(
+    self::FEMMAcoustSurf,
+    geom::NodalField,
+    Pdot::NodalField{T},
+    impedance
+) where {T<:Number}
+    assembler = SysmatAssemblerSparseSymm()
+    return acousticrobin(self, assembler, geom, Pdot, impedance)
 end
 
 """

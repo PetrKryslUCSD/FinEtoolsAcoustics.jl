@@ -34,11 +34,13 @@ export FEMMAcoustNICE, acousticstiffness
 using FinEtoolsAcoustics.FEMMAcoustSurfModule:
     FEMMAcoustSurf,
     acousticABC,
+    acousticrobin,
     pressure2resultantforce,
     pressure2resultanttorque,
     acousticcouplingpanels
 # Exported: type for acoustic absorbing boundary condition  and  transformation matrices from pressure  to resultants
 export FEMMAcoustSurf,
-    acousticABC, pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
+    acousticABC, acousticrobin,
+    pressure2resultantforce, pressure2resultanttorque, acousticcouplingpanels
 
 end # module
