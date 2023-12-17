@@ -4,8 +4,10 @@ DataDrop = "aa547a04-dd37-49ab-8e73-656744f8a8fc"
 FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
 FinEtoolsAcoustics = "72171760-8bdd-11e9-0dbf-b3b512e82515"
 FinEtoolsDeforLinear = "e9187c00-8bdd-11e9-1e70-7ba8303116a2"
+Gnuplot = "dc211083-a33a-5b79-959f-2ff34033469d"
 PlotlyLight = "ca7969ec-10b3-423e-8d99-40f33abb42bf"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 
 [compat]
 Arpack = "=0.5.3"
