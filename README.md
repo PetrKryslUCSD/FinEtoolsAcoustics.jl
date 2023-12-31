@@ -13,12 +13,13 @@ using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
+- 12/31/2023: Updated for Julia 1.10.0. 
 - 12/17/2023: Added damping matrix for the Robin condition.
 - 12/16/2023: Merge tutorials back into the package tree.
 - 12/10/2023: Format source; add an example from a Fahy textbook.
 - 12/08/2023: Unify terminology with the acoustics literature.
 - 06/22/2023: With the exception of the transient examples, examples work.
-- 06/21/2023: Update for FinEtools 7.0.
+- 06/21/2023: Updated for FinEtools 7.0.
 - 05/12/2023: Updated for Julia 1.9.0. 
 
 
