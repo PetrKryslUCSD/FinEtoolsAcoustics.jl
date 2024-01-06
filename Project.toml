@@ -13,7 +13,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Arpack = "=0.5.3"
-FinEtools = "^7"
+FinEtools = "^7.3"
 LinearAlgebra = "^1.10"
 SparseArrays = "^1.10"
 Statistics = "^1.10"
