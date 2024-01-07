@@ -159,17 +159,13 @@ version = "1.9.3"
 
 [[deps.FinEtools]]
 deps = ["ChunkSplitters", "DataDrop", "DelimitedFiles", "HDF5", "LinearAlgebra", "LoopVectorization", "Printf", "Random", "SparseArrays", "Statistics", "SymRCM", "Test", "Unicode", "WriteVTK"]
-git-tree-sha1 = "509d407ac9e028b0f421e8ea27634885b148b1b2"
-repo-rev = "main"
-repo-url = "https://github.com/PetrKryslUCSD/FinEtools.jl.git"
+git-tree-sha1 = "f5d3675b69af20e5648e28c457e41c1d12ca5821"
 uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
-version = "7.2.1"
+version = "7.3.0"
 
 [[deps.FinEtoolsAcoustics]]
 deps = ["Arpack", "FinEtools", "LinearAlgebra", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "fecd4c2c7bb386f7bfe28cbc74c43fb42f6d9916"
-repo-rev = "main"
-repo-url = ".."
+git-tree-sha1 = "4eb6277f0685d16ca909846908aabe8cc798fae5"
 uuid = "72171760-8bdd-11e9-0dbf-b3b512e82515"
 version = "3.1.0"
 
