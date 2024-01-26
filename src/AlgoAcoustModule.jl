@@ -101,7 +101,7 @@ function steadystate(modeldata::FDataDict)
             Pfixed = zeros(FCplxFlt, length(fenids)) # default is zero pressure
             if (pressure !== nothing)
                 if (typeof(pressure) <: Function) # pressure supplied through function
-                    for k = 1:length(fenids)
+                    for k = eachindex(fenids)
                         Pfixed[k] = pressure(geom.values[fenids[k], :])[1]
                     end
                 else # pressure given as  a constant
@@ -136,8 +136,8 @@ function steadystate(modeldata::FDataDict)
 
     # Compute the ABC matrices
     ABCs = get(modeldata, "ABCs", nothing)
-    if (ABCs != nothing)
-        for j = 1:length(ABCs)
+    if (ABCs !== nothing)
+        for j in eachindex(ABCs)
             ABC = ABCs[j]
             dcheck!(ABC, ABCs_recognized_keys)
             femm = get(() -> error("Must get femm for the ABC!"), ABC, "femm")
@@ -148,8 +148,8 @@ function steadystate(modeldata::FDataDict)
     # Process the flux boundary condition:
     # dP/dn=-rho*a ... The normal derivative of the pressure in terms of the acceleration
     flux_bcs = get(modeldata, "flux_bcs", nothing)
-    if (flux_bcs != nothing)
-        for j = 1:length(flux_bcs)
+    if (flux_bcs !== nothing)
+        for j  in eachindex(flux_bcs)
             fluxbc = flux_bcs[j]
             dcheck!(fluxbc, flux_bcs_recognized_keys)
             normal_flux =
@@ -176,8 +176,8 @@ function steadystate(modeldata::FDataDict)
 
     # Loads due to the essential boundary conditions on the pressure field
     essential_bcs = get(modeldata, "essential_bcs", nothing)
-    if (essential_bcs != nothing)
-        F_f = F_f - Ka_fd * F_d - Ma_fd * F_d
+    if (essential_bcs !== nothing)
+        F_f = F_f - Ka_fd * F_d - (-omega^2) * Ma_fd * F_d
     end
 
     # Solve for the pressures
