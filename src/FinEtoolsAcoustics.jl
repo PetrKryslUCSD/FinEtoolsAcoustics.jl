@@ -1,5 +1,5 @@
 """
-FinEtools (C) 2017-2023, Petr Krysl
+FinEtools (C) 2017-2024, Petr Krysl
 
 Finite Element tools.  Julia implementation  of the finite element method
 for continuum mechanics. Package for acoustic problems.
@@ -9,6 +9,9 @@ module FinEtoolsAcoustics
 __precompile__(true)
 
 include("allmodules.jl")
+
+# Enable LSP look up in test modules
+if false include("../test/runtests.jl") end
 
 using FinEtools.FTypesModule:
     FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
