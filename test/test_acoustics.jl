@@ -1,7 +1,6 @@
 
 module mmrrigid
 using FinEtools
-
 using FinEtoolsAcoustics
 using Test
 import Arpack: eigs
