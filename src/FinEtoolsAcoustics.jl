@@ -10,8 +10,9 @@ __precompile__(true)
 
 include("allmodules.jl")
 
-# Enable LSP look up in test modules
+# Enable LSP look-up in test modules.
 if false include("../test/runtests.jl") end
+
 
 using FinEtools.FTypesModule:
     FInt, FFlt, FCplxFlt, FFltVec, FIntVec, FFltMat, FIntMat, FMat, FVec, FDataDict
