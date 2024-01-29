@@ -35,9 +35,9 @@ git clone https://github.com/PetrKryslUCSD/FinEtoolsAcoustics.jl.git
 ```
 using Pkg; Pkg.activate("."); Pkg.instantiate();
 ```
-- Execute the desired tutorial. Here `name.jl` is the name of the tutorial file:
+- Execute the desired tutorial. Here `name_tut.jl` is the name of the tutorial file:
 ```
-include("name.jl")
+include("name_tut.jl")
 ```
 
 ## Examples
