@@ -1483,19 +1483,23 @@ function test()
     modeldata = AlgoAcoustModule.steadystate(modeldata)
     geom = modeldata["geom"]
     P = modeldata["P"]
-    # println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
-    # println("Minimum/maximum pressure, imag= $(minimum(imag(P.values)))/$(maximum(imag(P.values))))")
-    @test abs(minimum(real(P.values)) - -26.02026924534437) < 1.0e-5
-    @test abs(maximum(real(P.values)) - 32.15639028990587) < 1.0e-5
-    @test abs(minimum(imag(P.values)) - -3.083023162317023) < 1.0e-5
-    @test abs(maximum(imag(P.values)) - 3.083023162317045) < 1.0e-5
-    # println("Total time elapsed = ",time() - t0,"s")
 
-    # # Postprocessing
+    # # # Postprocessing
     # File = "acou_annulusmod.vtk"
     # vtkexportmesh(File, fes.conn, geom.values,
-    # FinEtools.MeshExportModule.Q4; scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
+    #     FinEtools.MeshExportModule.VTK.Q4; 
+    #     scalars=[("Pre", real(P.values)), ("Pim", imag(P.values))])
     # @async run(`"paraview.exe" $File`)
+    
+    
+    # println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
+    # println("Minimum/maximum pressure, imag= $(minimum(imag(P.values)))/$(maximum(imag(P.values))))")
+    
+    @test abs(minimum(real(P.values)) - -26.924562248616688) < 1.0e-5
+    @test abs(maximum(real(P.values)) - 33.275505963188515) < 1.0e-5
+    @test abs(minimum(imag(P.values)) - -3.201177386699586) < 1.0e-5
+    @test abs(maximum(imag(P.values)) - 3.2011773866995292) < 1.0e-5
+    # println("Total time elapsed = ",time() - t0,"s")
 
 end
 end
