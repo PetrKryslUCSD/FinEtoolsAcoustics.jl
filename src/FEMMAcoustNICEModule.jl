@@ -71,7 +71,7 @@ function _patchconn(fes, gl, thisnn)
     # Generate patch connectivity for a given node (thisnn)
     # from the connectivities of the finite elements attached to it.
     return vcat(
-        collect(setdiff(Set([i for j = 1:length(gl) for i in fes.conn[gl[j]]]), thisnn)),
+        collect(setdiff(Set([i for j = eachindex(gl) for i in fes.conn[gl[j]]]), thisnn)),
         [thisnn],
     )
 end
@@ -120,13 +120,13 @@ function _computenodalbfungrads(self, geom)
             c = reshape(geom.values[thisnn, :], 1, ndofs(geom))
             gradNavg = fill(0.0, np, ndofs(geom))# preallocate strain-displacement matrix
             Vpatch = 0.0
-            for k = 1:length(gl)
+            for k in eachindex(gl)
                 i = gl[k]
                 kconn = collect(fes.conn[i])
                 pci = findfirst(cx -> cx == thisnn, kconn)# at which node in the element are we with this quadrature point?
                 @assert 1 <= pci <= nodesperelem(fes)
                 # centered coordinates of nodes in the material coordinate system
-                for cn = 1:length(kconn)
+                for cn in eachindex(kconn)
                     xl[cn, :] = (reshape(geom.values[kconn[cn], :], 1, ndofs(geom)) - c)
                 end
                 jac!(J, xl, gradNparams[pci])
