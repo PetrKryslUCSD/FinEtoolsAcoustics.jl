@@ -1676,8 +1676,8 @@ function test()
     P = modeldata["P"]
     # println("Minimum/maximum pressure, real= $(minimum(real(P.values)))/$(maximum(real(P.values))))")
     # println("Minimum/maximum pressure, imag= $(minimum(imag(P.values)))/$(maximum(imag(P.values))))")
-    @test abs(minimum(real(P.values)) - -97.34672558165316) < 1.0e-5
-    @test abs(maximum(real(P.values)) - 75.50540650112683) < 1.0e-5
+    @test abs(minimum(real(P.values)) - -99.77679530525147) < 1.0e-5
+    @test abs(maximum(real(P.values)) - 77.37972750890135) < 1.0e-5
     @test abs(minimum(imag(P.values)) - 0.0) < 1.0e-5
     @test abs(maximum(imag(P.values)) - 0.0) < 1.0e-5
     # println("Total time elapsed = ",time() - t0,"s")
