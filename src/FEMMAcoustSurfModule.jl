@@ -167,7 +167,7 @@ function pressure2resultantforce(
     n = fill(zero(FFlt), 3) # normal vector -- used as a buffer
     J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- used as a buffer
     gatherdofnums!(Force, rowdofnums, [1 2 3])# retrieve degrees of freedom
-    startassembly!(assembler, 3 * edim * count(fes), 3, nalldofs(P))
+    startassembly!(assembler, 3, edim, count(fes), 3, nalldofs(P))
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(Ge, 0.0) # Initialize element matrix
@@ -252,7 +252,7 @@ function pressure2resultanttorque(
     n = fill(zero(FFlt), 3) # normal vector -- a buffer
     J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- a buffer
     gatherdofnums!(Torque, rowdofnums, [1 2 3])# retrieve degrees of freedom
-    startassembly!(assembler, 3 * edim * count(fes), 3, nalldofs(P))
+    startassembly!(assembler, 3, edim, count(fes), 3, nalldofs(P))
     for i in eachindex(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(Ge, 0.0) # Initialize element matrix
@@ -346,7 +346,7 @@ function acousticcouplingpanels(
     n = fill(zero(FFlt), sdim) # normal vector -- a buffer
     J = fill(zero(FFlt), sdim, mdim) # Jacobian matrix -- a buffer
     Ge = fill(zero(FFlt), sdim * nne, 1) # Element matrix -- a buffer
-    startassembly!(assembler, prod(size(Ge)) * count(fes), nalldofs(u), count(fes))
+    startassembly!(assembler, size(Ge)..., count(fes), nalldofs(u), count(fes))
     for i = 1:count(fes) # Loop over elements
         gathervalues_asmat!(geom, ecoords, fes.conn[i])
         fill!(Ge, 0.0) # Initialize element matrix

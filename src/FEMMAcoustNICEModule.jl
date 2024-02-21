@@ -183,7 +183,7 @@ function acousticstiffness(
     @assert self.associated
     fes = self.integdomain.fes
     elmatsizeguess = 4 * nodesperelem(fes) * ndofs(P)
-    startassembly!(assembler, elmatsizeguess^2 * nnodes(P), nalldofs(P), nalldofs(P))
+    startassembly!(assembler, elmatsizeguess, elmatsizeguess, nnodes(P), nalldofs(P), nalldofs(P))
     for nix = 1:length(self.nodalbasisfunctiongrad)
         gradN = self.nodalbasisfunctiongrad[nix].gradN
         patchconn = self.nodalbasisfunctiongrad[nix].patchconn
