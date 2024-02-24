@@ -18,13 +18,12 @@ The  machine for the interior integrals can be used to compute:
 
 - Evaluate the acoustic-mass matrix and the acoustic-stiffness matrix.
 
-- Evaluate the load vector corresponding to prescribed pressure  or the prescribed second order  rate of the pressure.
-
 The machine for the boundary integrals can be used to compute:
 
-- Compute  transformation matrix to convert  pressure  to resultant force  or pressure to resultant torque.
-
+- Compute  transformation matrix to convert  pressure  to resultant force  or
+  pressure to resultant torque.
 - Compute the acoustic  ABC  (absorbing boundary condition) matrix.
+- Compute the acoustic Robin  boundary condition matrix.
 
 ### Acoustics algorithms
 

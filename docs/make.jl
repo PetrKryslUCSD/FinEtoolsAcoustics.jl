@@ -10,8 +10,7 @@ makedocs(
 	"Home" => "index.md",
 	"How to guide" => "guide/guide.md",
 	"Types and Functions" => Any[
-		"man/types.md",
-		"man/functions.md"]
+		"man/man.md"]
 		]
 	)
 
