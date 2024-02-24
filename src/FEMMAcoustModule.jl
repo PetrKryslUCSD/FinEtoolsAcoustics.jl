@@ -69,7 +69,7 @@ pressure:
 
 !!! note
 
-    The bilinear-form function  [`FinEtools.FEMMBaseModule.bilform_diffusion`](@ref) is used to compute
+    The bilinear-form function  `bilform_diffusion` from `FinEtools.FEMMBaseModule` is used to compute
     the matrix.
 """
 function acousticstiffness(
@@ -119,7 +119,7 @@ pressure:
 
 !!! note
 
-    The bilinear-form function  [`FinEtools.FEMMBaseModule.bilform_dot`](@ref) is used to compute
+    The bilinear-form function  `bilform_dot`  from `FinEtools.FEMMBaseModule` is used to compute
     the matrix.
 """
 function acousticmass(
