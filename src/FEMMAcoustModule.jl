@@ -16,7 +16,7 @@ using ..MatAcoustFluidModule: MatAcoustFluid, bulkmodulus
 using FinEtools.MatModule: massdensity
 using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 using FinEtools.FieldModule:
-    ndofs, gatherdofnums!, gatherfixedvalues_asvec!, gathervalues_asmat!, nalldofs, gathervalues_asvec!
+    ndofs, gatherdofnums!, gathervalues_asmat!, nalldofs, gathervalues_asvec!
 using FinEtools.NodalFieldModule: NodalField
 using FinEtools.AssemblyModule:
     AbstractSysvecAssembler,

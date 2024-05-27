@@ -1390,10 +1390,10 @@ function test()
         P1.values[piston_fenids, 1] .= P_piston * sin(omega * t)
         Pdd1.values[piston_fenids, 1] .= P_piston * (-omega^2) * sin(omega * t)
         TMPF.values = P0.values + P1.values
-        gathersysvec!(TMPF, F_d, :d)
+        gathersysvec!(TMPF, F_d, DOF_KIND_DATA)
         F_f .= -Ka_fd * F_d
         TMPF.values = Pdd0.values + Pdd1.values
-        gathersysvec!(TMPF, F_d, :d)
+        gathersysvec!(TMPF, F_d, DOF_KIND_DATA)
         F_f = F_f - Ma_fd * F_d
         # println("$(norm(F))")
         vPd1 = A \ ((2 / dt) * (Ma_ff * vPd0) - Ka_ff * (2 * vP0 + (dt / 2) * vPd0) + F_f)

@@ -16,7 +16,6 @@ using FinEtools.IntegDomainModule: IntegDomain, integrationdata, Jacobianvolume
 using FinEtools.FieldModule:
     ndofs,
     gatherdofnums!,
-    gatherfixedvalues_asvec!,
     gathervalues_asvec!,
     gathervalues_asmat!,
     nalldofs

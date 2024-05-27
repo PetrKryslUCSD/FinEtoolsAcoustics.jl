@@ -13,11 +13,9 @@ using `FinEtools` to solve linear acoustics problems.
 
 ## News
 
+- 02/27/2024: Fix tests to pass with FinEtools 8.0.23.
 - 02/25/2024: Update tutorials and documentation.
 - 02/21/2024: Update for FinEtools 8.
-- 12/31/2023: Updated for Julia 1.10.0. 
-- 12/17/2023: Added damping matrix for the Robin condition.
-- 12/16/2023: Merge tutorials back into the package tree.
 
 [Past news](#past-news)
 
@@ -73,6 +71,9 @@ julia> include("steady_state/2-d\\Poisson_examples.jl"); Poisson_examples.allrun
 
 ## <a name="past-news"></a>Past news
 
+- 12/31/2023: Updated for Julia 1.10.0. 
+- 12/17/2023: Added damping matrix for the Robin condition.
+- 12/16/2023: Merge tutorials back into the package tree.
 - 12/10/2023: Format source; add an example from a Fahy textbook.
 - 12/08/2023: Unify terminology with the acoustics literature.
 - 06/22/2023: With the exception of the transient examples, examples work.
