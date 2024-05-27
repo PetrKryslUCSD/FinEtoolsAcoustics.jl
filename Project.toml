@@ -1,7 +1,7 @@
 name = "FinEtoolsAcoustics"
 uuid = "72171760-8bdd-11e9-0dbf-b3b512e82515"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
-version = "4.0.2"
+version = "4.0.3"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
