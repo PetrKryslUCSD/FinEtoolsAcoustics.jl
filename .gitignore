@@ -10,3 +10,4 @@ docs/build/
 *.pvd
 *.json
 
+Manifest.toml
