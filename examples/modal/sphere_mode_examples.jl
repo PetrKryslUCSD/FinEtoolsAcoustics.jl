@@ -1,36 +1,31 @@
-module sphere_mode_examples
-using FinEtools
-using FinEtools.AlgoBaseModule: matrix_blocked
-using FinEtoolsAcoustics
-using FinEtools.MeshExportModule
-using LinearAlgebra
-using Arpack: eigs
+"""
+Sphere modes.
 
-# For the data 
-# rho = 1.2*phun("kg/m^3");# mass density
-# c  = 340.0*phun("m/s");# sound speed
-# bulk =  c^2*rho;
-# R = 1000.0*phun("mm");# radius of the piston
+For the data 
+rho = 1.2*phun("kg/m^3");# mass density
+c  = 340.0*phun("m/s");# sound speed
+bulk =  c^2*rho;
+R = 1000.0*phun("mm");# radius of the piston
 
-# the reference 
+the reference 
 
-# @article{GAO2013914,
-# title = {Eigenvalue analysis for acoustic problem in 3D by boundary element method with the block Sakurai–Sugiura method},
-# journal = {Engineering Analysis with Boundary Elements},
-# volume = {37},
-# number = {6},
-# pages = {914-923},
-# year = {2013},
-# issn = {0955-7997},
-# doi = {https://doi.org/10.1016/j.enganabound.2013.03.015},
-# url = {https://www.sciencedirect.com/science/article/pii/S0955799713000714},
-# author = {Haifeng Gao and Toshiro Matsumoto and Toru Takahashi and Hiroshi Isakari},
-# keywords = {Eigenvalues, Acoustic, The block SS method, Boundary element method, Burton–Miller's method},
-# abstract = {This paper presents accurate numerical solutions for nonlinear eigenvalue analysis of three-dimensional acoustic cavities by boundary element method (BEM). To solve the nonlinear eigenvalue problem (NEP) formulated by BEM, we employ a contour integral method, called block Sakurai–Sugiura (SS) method, by which the NEP is converted to a standard linear eigenvalue problem and the dimension of eigenspace is reduced. The block version adopted in present work can also extract eigenvalues whose multiplicity is larger than one, but for the complex connected region which includes a internal closed boundary, the methodology yields fictitious eigenvalues. The application of the technique is demonstrated through the eigenvalue calculation of sphere with unique homogenous boundary conditions, cube with mixed boundary conditions and a complex connected region formed by cubic boundary and spherical boundary, however, the fictitious eigenvalues can be identified by Burton–Miller's method. These numerical results are supported by appropriate convergence study and comparisons with close form.}
-# }
+@article{GAO2013914,
+title = {Eigenvalue analysis for acoustic problem in 3D by boundary element method with the block Sakurai–Sugiura method},
+journal = {Engineering Analysis with Boundary Elements},
+volume = {37},
+number = {6},
+pages = {914-923},
+year = {2013},
+issn = {0955-7997},
+doi = {https://doi.org/10.1016/j.enganabound.2013.03.015},
+url = {https://www.sciencedirect.com/science/article/pii/S0955799713000714},
+author = {Haifeng Gao and Toshiro Matsumoto and Toru Takahashi and Hiroshi Isakari},
+keywords = {Eigenvalues, Acoustic, The block SS method, Boundary element method, Burton–Miller's method},
+abstract = {This paper presents accurate numerical solutions for nonlinear eigenvalue analysis of three-dimensional acoustic cavities by boundary element method (BEM). To solve the nonlinear eigenvalue problem (NEP) formulated by BEM, we employ a contour integral method, called block Sakurai–Sugiura (SS) method, by which the NEP is converted to a standard linear eigenvalue problem and the dimension of eigenspace is reduced. The block version adopted in present work can also extract eigenvalues whose multiplicity is larger than one, but for the complex connected region which includes a internal closed boundary, the methodology yields fictitious eigenvalues. The application of the technique is demonstrated through the eigenvalue calculation of sphere with unique homogenous boundary conditions, cube with mixed boundary conditions and a complex connected region formed by cubic boundary and spherical boundary, however, the fictitious eigenvalues can be identified by Burton–Miller's method. These numerical results are supported by appropriate convergence study and comparisons with close form.}
+}
 
-# shows the wave numbers in Table 1.
-#=
+shows the wave numbers in Table 1:
+
 The multiplicity of the Dirichlet eigenvalues.
 Wavenumber*R                    Multiplicity
 3.14159, 6.28319, 9.42478       1
@@ -39,7 +34,16 @@ Wavenumber*R                    Multiplicity
 6.98793, 10.41711, 13.69802     7
 8.18256, 11.70491, 15.03966     9
 9.35581, 12.96653, 16.35471    11
-=#
+
+"""
+
+module sphere_mode_examples
+using FinEtools
+using FinEtools.AlgoBaseModule: matrix_blocked
+using FinEtoolsAcoustics
+using FinEtools.MeshExportModule
+using LinearAlgebra
+using Arpack: eigs
 
 function sphere_h8_in_air()
     rho = 1.02 * phun("kg/m^3")# mass density
@@ -53,7 +57,7 @@ function sphere_h8_in_air()
 
     println("""
     
-    Sphere with Dirichlet boundary conditions: model analysis.
+    Sphere with Dirichlet boundary conditions: modal analysis.
     Hexahedral H8 mesh.
     Exact fundamental frequency: $(c/2/R)
 
@@ -123,8 +127,7 @@ function sphere_h8_in_air()
     Ka = acousticstiffness(femm, geom, P)
     Ma_ff = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[:ff]
     Ka_ff = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[:ff]
-    d, v, nev, nconv =
-        eigs(Ka_ff, Ma_ff; nev = neigvs, which = :SM, explicittransform = :none)
+    d, v, nconv = eigs(Ka_ff, Ma_ff; nev = neigvs, which = :SM, explicittransform = :none)
 
     v = real.(v)
     fs = real(sqrt.(complex(d))) ./ (2 * pi)

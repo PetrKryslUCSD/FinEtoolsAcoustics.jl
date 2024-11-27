@@ -86,8 +86,7 @@ function _run_transdec_pool(name, neigvs = 200, save_vtks = false, modelist = []
     Ka = acousticstiffness(femm, geom, P)
     Ma_ff = matrix_blocked(Ma, nfreedofs(P), nfreedofs(P))[:ff]
     Ka_ff = matrix_blocked(Ka, nfreedofs(P), nfreedofs(P))[:ff]
-    d, v, nev, nconv =
-        eigs(Ka_ff, Ma_ff; nev = neigvs, which = :SM, explicittransform = :none)
+    d, v, nconv = eigs(Ka_ff, Ma_ff; nev = neigvs, which = :SM, explicittransform = :none)
     v = real.(v)
     fs = real(sqrt.(complex(d))) ./ (2 * pi)
     println("Eigenvalues: $fs [Hz]")
